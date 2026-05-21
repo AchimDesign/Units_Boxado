@@ -194,8 +194,8 @@ camera.position.set(4, 2.5, 4);
 var controls = new THREE.OrbitControls(camera, canvas);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
-controls.minDistance = 0.5;
-controls.maxDistance = 20;
+controls.minDistance = 0.3;
+controls.maxDistance = 100;
 controls.maxPolarAngle = Math.PI * 0.48;
 
 // Lighting
@@ -301,11 +301,16 @@ function fitCamera() {
   var size = box.getSize(new THREE.Vector3());
   var maxDim = Math.max(size.x, size.y, size.z);
 
+  // Dynamicznie ustaw limity zoom na podstawie rozmiaru modelu
+  controls.minDistance = maxDim * 0.3;
+  controls.maxDistance = maxDim * 8;
   controls.target.copy(center);
-  var dist = maxDim * 1.6;
-  camera.position.set(center.x + dist*0.6, center.y + dist*0.35, center.z + dist*0.7);
-  camera.near = 0.01;
-  camera.far = 100;
+
+  // Kamera na rozsądnej odległości — 2.5× największy wymiar
+  var dist = maxDim * 2.5;
+  camera.position.set(center.x + dist * 0.5, center.y + dist * 0.3, center.z + dist * 0.6);
+  camera.near = maxDim * 0.01;
+  camera.far = maxDim * 30;
   camera.updateProjectionMatrix();
   controls.update();
 }
