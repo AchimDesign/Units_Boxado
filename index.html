@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boxado Unit — Konfigurator 3D</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--orange:#E73F19;--orange-soft:#FEE9E1;--orange-hover:#C7340F;--bg:#F5F5F5;--card:#FFFFFF;--border:#E8E8E8;--text:#1A1A1A;--text-muted:#6B6B6B;--text-subtle:#9A9A9A;--radius:10px;--radius-sm:6px;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  .header{background:var(--card);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:12px;}
+  .logo-mark{width:32px;height:32px;background:var(--orange);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-size:16px;}
+  .logo-text{font-weight:700;font-size:17px;}.logo-sub{font-size:11px;color:var(--text-subtle);font-weight:500;}
+  .header-badge{margin-left:auto;background:var(--orange-soft);color:var(--orange);font-size:12px;font-weight:600;padding:4px 10px;border-radius:var(--radius-sm);}
+  .shell{max-width:1200px;margin:0 auto;padding:24px;display:grid;grid-template-columns:250px 1fr;gap:20px;}
+  .sidebar{display:flex;flex-direction:column;gap:14px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+  .card-header{padding:10px 14px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-subtle);}
+  .series-tabs{display:flex;border-bottom:1px solid var(--border);}
+  .series-tab{flex:1;padding:10px 4px;font-size:12px;font-weight:600;text-align:center;cursor:pointer;border:none;background:none;color:var(--text-muted);font-family:inherit;transition:all .12s;border-bottom:2px solid transparent;margin-bottom:-1px;}
+  .series-tab:hover{background:var(--bg);}.series-tab.active{color:var(--orange);background:var(--orange-soft);border-bottom-color:var(--orange);}
+  .variant-list{padding:6px;display:flex;flex-direction:column;gap:3px;}
+  .variant-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:var(--radius-sm);cursor:pointer;border:1.5px solid transparent;transition:all .12s;font-size:13px;font-weight:500;background:none;font-family:inherit;width:100%;text-align:left;}
+  .variant-item:hover{background:var(--bg);}.variant-item.active{border-color:var(--orange);background:var(--orange-soft);color:var(--orange);}
+  .variant-badge{font-size:10px;font-weight:700;background:var(--text);color:white;padding:2px 6px;border-radius:4px;flex-shrink:0;}
+  .variant-item.active .variant-badge{background:var(--orange);}
+  .variant-label{flex:1;}.variant-m2{color:var(--text-subtle);font-size:11px;}
+  .variant-item.active .variant-m2{color:var(--orange);opacity:.7;}
+  .state-toggle{padding:10px;display:flex;gap:6px;}
+  .state-btn{flex:1;padding:9px 4px;font-size:11px;font-weight:600;font-family:inherit;border-radius:var(--radius-sm);cursor:pointer;transition:all .12s;display:flex;flex-direction:column;align-items:center;gap:5px;border:1.5px solid var(--border);background:var(--bg);color:var(--text-muted);}
+  .state-btn svg{width:18px;height:18px;}.state-btn:hover{border-color:var(--text-muted);color:var(--text);}
+  .state-btn.active{border-color:var(--orange);background:var(--orange-soft);color:var(--orange);}
+  .dims-grid{padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .dim-label{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--text-subtle);margin-bottom:2px;}
+  .dim-value{font-size:17px;font-weight:700;line-height:1;}.dim-unit{font-size:10px;font-weight:400;color:var(--text-muted);margin-left:1px;}
+  .dim-full{grid-column:1/-1;border-top:1px solid var(--border);padding-top:10px;}
+  .dim-sub{font-size:11px;color:var(--text-subtle);margin-top:2px;}
+  .cta-wrap{padding:14px;}
+  .cta-btn{display:block;width:100%;padding:11px;background:var(--orange);color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:background .12s;text-align:center;text-decoration:none;}
+  .cta-btn:hover{background:var(--orange-hover);}.cta-note{font-size:11px;color:var(--text-subtle);text-align:center;margin-top:8px;}
+  .viewer-wrap{display:flex;flex-direction:column;gap:14px;}
+  .viewer-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+  .viewer-canvas-wrap{position:relative;width:100%;aspect-ratio:16/9;background:#EEECEA;}
+  #cv{display:block;width:100%;height:100%;cursor:grab;}#cv:active{cursor:grabbing;}
+  .v-tl{position:absolute;top:12px;left:12px;}.v-tr{position:absolute;top:12px;right:12px;}
+  .state-pill{background:white;border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .state-dot{width:6px;height:6px;border-radius:50%;background:var(--orange);}
+  .model-pill{background:var(--text);border-radius:6px;padding:4px 12px;font-size:12px;font-weight:700;color:white;letter-spacing:.03em;}
+  .v-hint{position:absolute;bottom:10px;right:12px;font-size:10px;color:var(--text-subtle);background:rgba(255,255,255,.8);padding:3px 8px;border-radius:20px;pointer-events:none;}
+  .info-strip{padding:12px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .chip{display:flex;align-items:center;gap:7px;}
+  .chip-icon{width:26px;height:26px;background:var(--bg);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:12px;}
+  .chip-label{font-size:10px;color:var(--text-subtle);font-weight:500;}.chip-val{font-size:13px;font-weight:700;}
+  .sep{width:1px;height:22px;background:var(--border);}
+  .loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:#EEECEA;z-index:10;transition:opacity .4s;}
+  .loader.hidden{opacity:0;pointer-events:none;}
+  .loader-ring{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .75s linear infinite;}
+  .loader-text{font-size:12px;color:var(--text-subtle);font-weight:500;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @media(max-width:800px){.shell{grid-template-columns:1fr;padding:14px;}.sidebar{order:2;}.viewer-wrap{order:1;}}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="logo-mark">🐿</div>
+  <div><div class="logo-text">boxado</div><div class="logo-sub">Konfigurator Unitów 3D</div></div>
+  <div class="header-badge">Prototyp UI</div>
+</header>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="card">
+      <div class="series-tabs">
+        <button class="series-tab active" data-series="mono">Mono</button>
+        <button class="series-tab" data-series="duo">Duo</button>
+        <button class="series-tab" data-series="side">Side</button>
+      </div>
+      <div class="variant-list" id="vlist"></div>
+    </div>
+    <div class="card">
+      <div class="card-header">Stan modelu</div>
+      <div class="state-toggle">
+        <button class="state-btn active" data-state="closed">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><line x1="12" y1="5" x2="12" y2="19"/></svg>
+          Zamknięty
+        </button>
+        <button class="state-btn" data-state="open">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 5 L20 8 L20 16 L12 19"/></svg>
+          Otwarty
+        </button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">Wymiary</div>
+      <div class="dims-grid">
+        <div><div class="dim-label">↔ Szerokość</div><div class="dim-value">2246<span class="dim-unit">mm</span></div><div class="dim-sub">stała</div></div>
+        <div><div class="dim-label">↑ Wysokość</div><div class="dim-value">2290<span class="dim-unit">mm</span></div><div class="dim-sub">stała</div></div>
+        <div class="dim-full"><div class="dim-label">↗ Długość</div><div class="dim-value" id="dim-len">—<span class="dim-unit">mm</span></div></div>
+        <div class="dim-full" style="border-top:none;padding-top:0;margin-top:-6px;"><div class="dim-label">🚪 Wys. w świetle drzwi</div><div class="dim-value">2015<span class="dim-unit">mm</span></div></div>
+      </div>
+    </div>
+    <div class="card cta-wrap">
+      <a href="https://biz.boxado.com" class="cta-btn">Zapytaj o wycenę →</a>
+      <div class="cta-note">Dostawa 4–6 tygodni · od 1 sztuki</div>
+    </div>
+  </aside>
+  <div class="viewer-wrap">
+    <div class="viewer-card">
+      <div class="viewer-canvas-wrap">
+        <canvas id="cv"></canvas>
+        <div class="loader" id="loader">
+          <div class="loader-ring"></div>
+          <div class="loader-text">Ładowanie modelu…</div>
+        </div>
+        <div class="v-tl"><div class="state-pill"><span class="state-dot"></span><span id="slabel">Zamknięty</span></div></div>
+        <div class="v-tr"><div class="model-pill" id="mpill">—</div></div>
+        <div class="v-hint">Przeciągnij · scroll = zoom</div>
+      </div>
+      <div class="info-strip">
+        <div class="chip"><div class="chip-icon">▦</div><div><div class="chip-label">Powierzchnia</div><div class="chip-val" id="im2">—</div></div></div>
+        <div class="sep"></div>
+        <div class="chip"><div class="chip-icon">◈</div><div><div class="chip-label">Kubatura</div><div class="chip-val" id="im3">—</div></div></div>
+        <div class="sep"></div>
+        <div class="chip"><div class="chip-icon">⊞</div><div><div class="chip-label">Seria</div><div class="chip-val" id="iser">—</div></div></div>
+        <div class="sep"></div>
+        <div class="chip"><div class="chip-icon">⊡</div><div><div class="chip-label">Komory</div><div class="chip-val" id="icham">—</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+// ═══ KONFIGURACJA MODELI ═══
+// Każdy wariant wskazuje na pliki GLB: closed + open
+var MODELS = {
+  '3M':  { closed: '3MClosed.glb', open: '3MOpened.glb' },
+  '6M':  { closed: '2MClosed.glb', open: '2MOpened.glb' },
+  '9M':  { closed: '2MClosed.glb', open: '2MOpened.glb' },
+  '12M': { closed: '2MClosed.glb', open: '2MOpened.glb' },
+  '6D':  { closed: '2MClosed.glb', open: '2MOpened.glb' },
+  '9D':  { closed: '2MClosed.glb', open: '2MOpened.glb' },
+  '12D': { closed: '2MClosed.glb', open: '2MOpened.glb' },
+  '6S2': { closed: '2MClosed.glb', open: '2MOpened.glb' },
+  '6S3': { closed: '2MClosed.glb', open: '2MOpened.glb' },
+  '9S3': { closed: '2MClosed.glb', open: '2MOpened.glb' },
+  '12S4':{ closed: '2MClosed.glb', open: '2MOpened.glb' },
+  '12S6':{ closed: '2MClosed.glb', open: '2MOpened.glb' },
+};
+// Jak dodasz nowe GLB, podmień np:
+// '3M': { closed: '3MClosed.glb', open: '3MOpened.glb' },
+
+var DATA = {
+  mono:[
+    {id:'3M', label:'3M', m2:3,  length:1605,chambers:1,desc:'Mono 3 m²'},
+    {id:'6M', label:'6M', m2:6,  length:3070,chambers:1,desc:'Mono 6 m²'},
+    {id:'9M', label:'9M', m2:9,  length:4535,chambers:1,desc:'Mono 9 m²'},
+    {id:'12M',label:'12M',m2:12, length:6000,chambers:1,desc:'Mono 12 m²'},
+  ],
+  duo:[
+    {id:'6D', label:'6D', m2:6,  length:3070,chambers:2,desc:'Duo 6 m² (2×3)'},
+    {id:'9D', label:'9D', m2:9,  length:4535,chambers:2,desc:'Duo 9 m² (2×4.5)'},
+    {id:'12D',label:'12D',m2:12, length:6000,chambers:2,desc:'Duo 12 m² (2×6)'},
+  ],
+  side:[
+    {id:'6S2', label:'6S2', m2:6,  length:3070,chambers:2,desc:'Side 3×2 m²'},
+    {id:'6S3', label:'6S3', m2:6,  length:3070,chambers:3,desc:'Side 2×3 m²'},
+    {id:'9S3', label:'9S3', m2:9,  length:4535,chambers:3,desc:'Side 3×3 m²'},
+    {id:'12S4',label:'12S4',m2:12, length:6000,chambers:4,desc:'Side 3×4 m²'},
+    {id:'12S6',label:'12S6',m2:12, length:6000,chambers:6,desc:'Side 2×6 m²'},
+  ],
+};
+var SL = {mono:'Mono',duo:'Duo',side:'Side'};
+var series = 'mono', variant = DATA.mono[0], currentState = 'closed';
+
+// ═══ Three.js scena ═══
+var canvas = document.getElementById('cv');
+var wrap = canvas.parentElement;
+
+var renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.setClearColor(0xEEECEA, 1);
+
+var scene  = new THREE.Scene();
+var camera = new THREE.PerspectiveCamera(38, 1, 0.01, 200);
+camera.position.set(4, 2.5, 4);
+
+var controls = new THREE.OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 0.5;
+controls.maxDistance = 20;
+controls.maxPolarAngle = Math.PI * 0.48;
+
+// Lighting
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+var keyLight = new THREE.DirectionalLight(0xffffff, 0.85);
+keyLight.position.set(6, 8, 5);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(1024, 1024);
+scene.add(keyLight);
+var fillLight = new THREE.DirectionalLight(0xfff4ee, 0.3);
+fillLight.position.set(-5, 3, -4);
+scene.add(fillLight);
+
+// Ground
+var ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(40, 40),
+  new THREE.ShadowMaterial({opacity: 0.07})
+);
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// ═══ Model loading ═══
+var gltfLoader = new THREE.GLTFLoader();
+var closedModel = null;
+var openModel = null;
+var currentFile = '';
+
+function showLoader(on) {
+  document.getElementById('loader').classList.toggle('hidden', !on);
+}
+
+function clearModels() {
+  if (closedModel) { scene.remove(closedModel); closedModel = null; }
+  if (openModel) { scene.remove(openModel); openModel = null; }
+}
+
+function loadVariant() {
+  var files = MODELS[variant.id];
+  if (!files) return;
+
+  // Nie ładuj ponownie jeśli to te same pliki
+  var key = files.closed + '|' + files.open;
+  if (key === currentFile) {
+    applyState();
+    return;
+  }
+  currentFile = key;
+
+  showLoader(true);
+  clearModels();
+
+  var loaded = 0;
+
+  // Załaduj CLOSED
+  gltfLoader.load(files.closed, function(gltf) {
+    closedModel = gltf.scene;
+    closedModel.traverse(function(obj) {
+      if (obj.isMesh) { obj.castShadow = true; obj.receiveShadow = true; }
+    });
+    scene.add(closedModel);
+    loaded++;
+    if (loaded === 2) onBothLoaded();
+  }, undefined, function(err) {
+    document.querySelector('.loader-text').textContent = 'Błąd: ' + files.closed;
+    console.error('GLB load error (closed):', err);
+  });
+
+  // Załaduj OPEN
+  gltfLoader.load(files.open, function(gltf) {
+    openModel = gltf.scene;
+    openModel.traverse(function(obj) {
+      if (obj.isMesh) { obj.castShadow = true; obj.receiveShadow = true; }
+    });
+    scene.add(openModel);
+    loaded++;
+    if (loaded === 2) onBothLoaded();
+  }, undefined, function(err) {
+    document.querySelector('.loader-text').textContent = 'Błąd: ' + files.open;
+    console.error('GLB load error (open):', err);
+  });
+}
+
+function onBothLoaded() {
+  applyState();
+  fitCamera();
+  showLoader(false);
+}
+
+function applyState() {
+  if (closedModel) closedModel.visible = (currentState === 'closed');
+  if (openModel) openModel.visible = (currentState === 'open');
+  document.getElementById('slabel').textContent =
+    currentState === 'open' ? 'Otwarty' : 'Zamknięty';
+}
+
+function fitCamera() {
+  var activeModel = currentState === 'closed' ? closedModel : openModel;
+  if (!activeModel) return;
+
+  var box = new THREE.Box3().setFromObject(activeModel);
+  var center = box.getCenter(new THREE.Vector3());
+  var size = box.getSize(new THREE.Vector3());
+  var maxDim = Math.max(size.x, size.y, size.z);
+
+  controls.target.copy(center);
+  var dist = maxDim * 1.6;
+  camera.position.set(center.x + dist*0.6, center.y + dist*0.35, center.z + dist*0.7);
+  camera.near = 0.01;
+  camera.far = 100;
+  camera.updateProjectionMatrix();
+  controls.update();
+}
+
+// ═══ Resize + Render ═══
+function resize() {
+  var w = wrap.clientWidth, h = wrap.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+resize();
+
+(function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+})();
+
+// ═══ UI ═══
+function updateUI(){
+  document.getElementById('dim-len').innerHTML = variant.length+'<span class="dim-unit">mm</span>';
+  document.getElementById('mpill').textContent = variant.label;
+  document.getElementById('im2').textContent = variant.m2+' m²';
+  document.getElementById('im3').textContent = ((variant.length/1000)*2.246*2.290).toFixed(1)+' m³';
+  document.getElementById('iser').textContent = SL[series];
+  document.getElementById('icham').textContent = variant.chambers;
+}
+
+function renderList(){
+  var el = document.getElementById('vlist'); el.innerHTML = '';
+  DATA[series].forEach(function(v){
+    var b = document.createElement('button');
+    b.className = 'variant-item' + (v.id===variant.id?' active':'');
+    b.innerHTML = '<span class="variant-badge">'+v.label+'</span><span class="variant-label">'+v.desc+'</span><span class="variant-m2">'+v.m2+' m²</span>';
+    b.onclick = function(){ variant = v; renderList(); updateUI(); loadVariant(); };
+    el.appendChild(b);
+  });
+}
+
+document.querySelectorAll('.series-tab').forEach(function(t){
+  t.addEventListener('click', function(){
+    series = t.dataset.series; variant = DATA[series][0];
+    document.querySelectorAll('.series-tab').forEach(function(x){x.classList.remove('active');});
+    t.classList.add('active');
+    renderList(); updateUI(); loadVariant();
+  });
+});
+
+document.querySelectorAll('.state-btn').forEach(function(b){
+  b.addEventListener('click', function(){
+    currentState = b.dataset.state;
+    document.querySelectorAll('.state-btn').forEach(function(x){x.classList.remove('active');});
+    b.classList.add('active');
+    applyState();
+  });
+});
+
+updateUI(); renderList(); loadVariant();
+</script>
+</body>
+</html>
