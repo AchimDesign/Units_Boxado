@@ -203,7 +203,7 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
     "imports": {
       "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
       "three/examples/jsm/loaders/GLTFLoader.js": "https://unpkg.com/three@0.128.0/examples/jsm/loaders/GLTFLoader.js",
-      "three/examples/jsm/loaders/RGBELoader.js": "https://unpkg.com/three@0.128.0/examples/jsm/loaders/RGBELoader.js"
+      "three/examples/jsm/loaders/EXRLoader.js": "https://unpkg.com/three@0.128.0/examples/jsm/loaders/EXRLoader.js"
     }
   }
   </script>
@@ -300,7 +300,7 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 <script type="module">
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
+import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 
 var TAGS = {
 
@@ -744,13 +744,12 @@ var camera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
 var pmremGenerator = new THREE.PMREMGenerator(renderer);
 pmremGenerator.compileEquirectangularShader();
 
-new RGBELoader()
-  .setDataType(THREE.UnsignedByteType)
+new EXRLoader()
   .load(
-    'venice_sunset_1k.hdr',
+    'HdrOutdoorFieldBaseballDayClear001_HDR_1K.exr',
     function(texture) {
+      texture.mapping = THREE.EquirectangularReflectionMapping;
       var envMap = pmremGenerator.fromEquirectangular(texture).texture;
-      // Use as env map for reflections/lighting but NOT as background
       scene3.environment = envMap;
       texture.dispose();
       pmremGenerator.dispose();
