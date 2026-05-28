@@ -197,9 +197,16 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 }
 </style>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="https://raw.githubusercontent.com/mrdoob/three.js/r128/examples/js/loaders/RGBELoader.js"></script>
+  <script async src="https://ga.jspm.io/npm:es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+      "three/examples/jsm/loaders/GLTFLoader.js": "https://unpkg.com/three@0.128.0/examples/jsm/loaders/GLTFLoader.js",
+      "three/examples/jsm/loaders/RGBELoader.js": "https://unpkg.com/three@0.128.0/examples/jsm/loaders/RGBELoader.js"
+    }
+  }
+  </script>
 </head>
 
 <body>
@@ -290,9 +297,10 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 
 </div>
 
-<script>
-
-
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 
 var TAGS = {
 
@@ -736,7 +744,7 @@ var camera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
 var pmremGenerator = new THREE.PMREMGenerator(renderer);
 pmremGenerator.compileEquirectangularShader();
 
-new THREE.RGBELoader()
+new RGBELoader()
   .setDataType(THREE.UnsignedByteType)
   .load(
     'royal_esplanade_1k.hdr',
@@ -774,7 +782,7 @@ function getRadius() {
 }
 
 // GLB loading
-var loader = new THREE.GLTFLoader();
+var loader = new GLTFLoader();
 var currentModel = null;
 var loadingModel = false;
 
