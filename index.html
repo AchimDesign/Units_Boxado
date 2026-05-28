@@ -733,7 +733,7 @@ var renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: fal
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.1;
+renderer.toneMappingExposure = 0.95;
 renderer.setClearColor(0xe2e2e2, 1);
 renderer.physicallyCorrectLights = true;
 
@@ -747,7 +747,7 @@ pmremGenerator.compileEquirectangularShader();
 new RGBELoader()
   .setDataType(THREE.UnsignedByteType)
   .load(
-    'royal_esplanade_1k.hdr',
+    'venice_sunset_1k.hdr',
     function(texture) {
       var envMap = pmremGenerator.fromEquirectangular(texture).texture;
       // Use as env map for reflections/lighting but NOT as background
