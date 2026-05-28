@@ -746,7 +746,7 @@ pmremGenerator.compileEquirectangularShader();
 
 new EXRLoader()
   .load(
-    'HdrOutdoorFieldBaseballDayClear001_HDR_1K.exr',
+    'studio-2nd-floor-cyclorama_1K.exr',
     function(texture) {
       texture.mapping = THREE.EquirectangularReflectionMapping;
       var envMap = pmremGenerator.fromEquirectangular(texture).texture;
