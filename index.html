@@ -728,7 +728,7 @@ renderer.toneMappingExposure = 0.85;
 renderer.setClearColor(0xe2e2e2, 1);
 
 var scene3 = new THREE.Scene();
-var camera = new THREE.PerspectiveCamera(40, 1, 0.05, 100);
+var camera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
 
 // Lights — high contrast studio setup for light-colored models
 // Low ambient so shadows read clearly
@@ -756,6 +756,7 @@ scene3.add(hemiLight);
 
 // Camera orbit state
 var theta = 0.5, phi = 0.85, tTheta = 0.5, tPhi = 0.85;
+var modelCenter = new THREE.Vector3(0, 0, 0);
 var radius = 8, tRadius = 8;
 var drag = false, lx = 0, ly = 0, pinchDist = null;
 
@@ -789,16 +790,20 @@ function loadGLB(variantId, stateKey, resetCamera) {
     var center = box.getCenter(new THREE.Vector3());
     var size = box.getSize(new THREE.Vector3());
 
-    // Center model at origin, base on ground
+    // Center model exactly at origin (bbox center = 0,0,0)
     model.position.sub(center);
-    model.position.y += size.y / 2;
 
     scene3.add(model);
     currentModel = model;
 
+    // Camera target = center of model = origin
+    modelCenter.set(0, 0, 0);
+
     // Only reset camera when switching variant (not open/close toggle)
     if (resetCamera) {
-      var fit = Math.max(size.x, size.y, size.z) * 2.4;
+      var maxDim = Math.max(size.x, size.y, size.z);
+      var fov = camera.fov * (Math.PI / 180);
+      var fit = (maxDim / 2) / Math.tan(fov / 2) * 1.6;
       tRadius = fit;
       radius = fit;
     }
@@ -875,11 +880,11 @@ cv.addEventListener('touchmove', function(e) {
   phi   += (tPhi   - phi)   * 0.1;
   radius += (tRadius - radius) * 0.1;
 
-  var ex = radius * Math.sin(phi) * Math.sin(theta);
-  var ey = radius * Math.cos(phi);
-  var ez = radius * Math.sin(phi) * Math.cos(theta);
+  var ex = modelCenter.x + radius * Math.sin(phi) * Math.sin(theta);
+  var ey = modelCenter.y + radius * Math.cos(phi);
+  var ez = modelCenter.z + radius * Math.sin(phi) * Math.cos(theta);
   camera.position.set(ex, ey, ez);
-  camera.lookAt(0, 0, 0);
+  camera.lookAt(modelCenter);
 
   renderer.render(scene3, camera);
 })();
