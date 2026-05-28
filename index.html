@@ -199,6 +199,7 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://raw.githubusercontent.com/mrdoob/three.js/r128/examples/js/loaders/RGBELoader.js"></script>
 </head>
 
 <body>
@@ -721,38 +722,46 @@ var wrap = cv.parentElement;
 
 // Three.js scene setup
 var renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: false });
-renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.85;
+renderer.toneMappingExposure = 1.1;
 renderer.setClearColor(0xe2e2e2, 1);
+renderer.physicallyCorrectLights = true;
 
 var scene3 = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
 
-// Lights — high contrast studio setup for light-colored models
-// Low ambient so shadows read clearly
-var ambientLight = new THREE.AmbientLight(0xffffff, 0.25);
+// HDR Environment Map for PBR realism
+var pmremGenerator = new THREE.PMREMGenerator(renderer);
+pmremGenerator.compileEquirectangularShader();
+
+new THREE.RGBELoader()
+  .setDataType(THREE.UnsignedByteType)
+  .load(
+    'royal_esplanade_1k.hdr',
+    function(texture) {
+      var envMap = pmremGenerator.fromEquirectangular(texture).texture;
+      // Use as env map for reflections/lighting but NOT as background
+      scene3.environment = envMap;
+      texture.dispose();
+      pmremGenerator.dispose();
+    }
+  );
+
+// Subtle fill lights to complement HDR (HDR handles most lighting)
+var ambientLight = new THREE.AmbientLight(0xffffff, 0.15);
 scene3.add(ambientLight);
 
-// Key light — strong, front-left-top, warm
-var keyLight = new THREE.DirectionalLight(0xfff8f0, 2.2);
-keyLight.position.set(5, 9, 7);
+// Key directional — adds crisp shadow definition on top of HDR
+var keyLight = new THREE.DirectionalLight(0xfff8f2, 1.2);
+keyLight.position.set(5, 9, 6);
 scene3.add(keyLight);
 
-// Fill light — cool-blue, right side, much dimmer
-var fillLight = new THREE.DirectionalLight(0xd0e4ff, 0.55);
-fillLight.position.set(-6, 3, 2);
+// Soft fill from opposite side
+var fillLight = new THREE.DirectionalLight(0xe8f0ff, 0.3);
+fillLight.position.set(-5, 3, -3);
 scene3.add(fillLight);
-
-// Rim light — back-right, separates model from bg
-var rimLight = new THREE.DirectionalLight(0xffffff, 0.7);
-rimLight.position.set(3, 5, -8);
-scene3.add(rimLight);
-
-// Hemisphere — ground bounce warm/cool
-var hemiLight = new THREE.HemisphereLight(0xc8d8ff, 0x8a7060, 0.3);
-scene3.add(hemiLight);
 
 // Camera orbit state
 var theta = 0.5, phi = 0.85, tTheta = 0.5, tPhi = 0.85;
