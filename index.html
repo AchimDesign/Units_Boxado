@@ -136,15 +136,16 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 
 .state-btn.active svg{color:var(--brand);}
 
-.loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:var(--g10);z-index:10;transition:opacity .4s;}
+.loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;background:#e2e2e2;z-index:10;transition:opacity .35s ease;}
 
 .loader.hidden{opacity:0;pointer-events:none;}
 
-.loader-ring{width:34px;height:34px;border:3px solid var(--g20);border-top-color:var(--brand);border-radius:50%;animation:spin .75s linear infinite;}
+.loader-gif{width:48px;height:48px;}
 
 .loader-text{font-size:12px;color:var(--g70);font-weight:500;}
 
-@keyframes spin{to{transform:rotate(360deg);}}
+#cv{transition:opacity .25s ease;}
+#cv.fade-out{opacity:0;}
 
 /* Mobile */
 
@@ -257,7 +258,7 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 
         <canvas id="cv"></canvas>
 
-        <div class="loader" id="loader"><div class="loader-ring"></div><div class="loader-text">Ładowanie modelu…</div></div>
+        <div class="loader" id="loader"><img class="loader-gif" src="LoopedSquirrelRun.gif" alt="Loading"><div class="loader-text">Ładowanie modelu…</div></div>
 
         <div class="model-tag" id="model-tag"></div>
 
@@ -304,7 +305,6 @@ import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 
 var TAGS = {
 
-  '2M': `<svg width="72" height="54" viewBox="0 0 72 54" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="72" height="54" rx="8" fill="#1D1D1B"/><path d="M13.599 33.616C14.3244 33.04 14.655 32.7733 14.591 32.816C16.6817 31.088 18.3244 29.6693 19.519 28.56C20.7351 27.4507 21.7591 26.288 22.5911 25.072C23.4231 23.856 23.8391 22.672 23.8391 21.52C23.8391 20.6453 23.6364 19.9627 23.231 19.472C22.8257 18.9813 22.2177 18.736 21.4071 18.736C20.5964 18.736 19.9564 19.0453 19.487 19.664C19.039 20.2613 18.815 21.1147 18.815 22.224H13.535C13.5777 20.4107 13.9617 18.896 14.687 17.68C15.4337 16.464 16.4044 15.568 17.599 14.992C18.8151 14.416 20.1591 14.128 21.6311 14.128C24.1697 14.128 26.0791 14.7787 27.3591 16.08C28.6604 17.3813 29.3111 19.0773 29.3111 21.168C29.3111 23.4507 28.5324 25.5733 26.9751 27.536C25.4177 29.4773 23.4337 31.376 21.0231 33.232H29.663V37.68H13.599V33.616Z" fill="#DADADA"/><path d="M58.119 15.536V38H52.647V24.528L47.623 38H43.207L38.151 24.496V38H32.679V15.536H39.143L45.447 31.088L51.687 15.536H58.119Z" fill="#AFAFAF"/></svg>`,
 
 
   '3M': `<svg width="82" height="54" viewBox="0 0 82 54" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -493,25 +493,23 @@ var DATA={
 
   mono:[
 
-    {id:'2M', m2:2,  length:805, width:2246,height:2290,doorW:1465,doorH:2015,chambers:1,popular:false},
+    {id:'3M', m2:3,  length:1605,width:2246,height:2290,doorW:2130,doorH:2015,chambers:1,boxDepth:1450,boxWidth:2133,popular:false},
 
-    {id:'3M', m2:3,  length:1605,width:2246,height:2290,doorW:1465,doorH:2015,chambers:1,popular:false},
+    {id:'6M', m2:6,  length:3070,width:2246,height:2290,doorW:2120,doorH:2015,chambers:1,boxDepth:2910,boxWidth:2150,popular:true},
 
-    {id:'6M', m2:6,  length:3070,width:2246,height:2290,doorW:1465,doorH:2015,chambers:1,popular:true},
+    {id:'9M', m2:9,  length:4535,width:2246,height:2290,doorW:2120,doorH:2015,chambers:1,boxDepth:4370,boxWidth:2150,popular:false},
 
-    {id:'9M', m2:9,  length:4535,width:2246,height:2290,doorW:1465,doorH:2015,chambers:1,popular:false},
-
-    {id:'12M',m2:12, length:6000,width:2246,height:2290,doorW:1465,doorH:2015,chambers:1,popular:false},
+    {id:'12M',m2:12, length:6000,width:2246,height:2290,doorW:2120,doorH:2015,chambers:1,boxDepth:5840,boxWidth:2150,popular:false},
 
   ],
 
   duo:[
 
-    {id:'6D', m2:6,  length:3070,width:2246,height:2290,doorW:1465,doorH:2015,chambers:2,popular:false},
+    {id:'6D', m2:6,  length:3070,width:2246,height:2290,doorW:2120,doorH:2015,chambers:2,boxDepth:2150,boxWidth:1445,popular:false},
 
-    {id:'9D', m2:9,  length:4535,width:2246,height:2290,doorW:1465,doorH:2015,chambers:2,popular:false},
+    {id:'9D', m2:9,  length:4535,width:2246,height:2290,doorW:2120,doorH:2015,chambers:2,boxDepth:2150,boxWidth:1440,popular:false},
 
-    {id:'12D',m2:12, length:6000,width:2246,height:2290,doorW:1465,doorH:2015,chambers:2,popular:false},
+    {id:'12D',m2:12, length:6000,width:2246,height:2290,doorW:2120,doorH:2015,chambers:2,boxDepth:2150,boxWidth:2920,popular:false},
 
   ],
 
@@ -519,15 +517,15 @@ var DATA={
 
 
 
-    {id:'6S2', m2:6,  length:3070,width:2246,height:2290,doorW:1465,doorH:2015,chambers:2,popular:false},
+    {id:'6S2', m2:6,  length:3070,width:2246,height:2290,doorW:1040,doorH:2015,chambers:2,boxDepth:2150,boxWidth:1445,popular:false},
 
-    {id:'6S3', m2:6,  length:3070,width:2246,height:2290,doorW:977, doorH:2015,chambers:3,popular:false},
+    {id:'6S3', m2:6,  length:3070,width:2246,height:2290,doorW:770, doorH:2015,chambers:3,boxDepth:2150,boxWidth:956,popular:false},
 
-    {id:'9S3', m2:9,  length:4535,width:2246,height:2290,doorW:1465,doorH:2015,chambers:3,popular:false},
+    {id:'9S3', m2:9,  length:4535,width:2246,height:2290,doorW:1040,doorH:2015,chambers:3,boxDepth:2150,boxWidth:1440,popular:false},
 
-    {id:'12S4',m2:12, length:6000,width:2246,height:2290,doorW:1465,doorH:2015,chambers:4,popular:false},
+    {id:'12S4',m2:12, length:6000,width:2246,height:2290,doorW:1040,doorH:2015,chambers:4,boxDepth:2150,boxWidth:1445,popular:false},
 
-    {id:'12S6',m2:12, length:6000,width:2246,height:2290,doorW:977, doorH:2015,chambers:6,popular:false},
+    {id:'12S6',m2:12, length:6000,width:2246,height:2290,doorW:770, doorH:2015,chambers:6,boxDepth:2150,boxWidth:956,popular:false},
 
   ],
 
@@ -535,7 +533,7 @@ var DATA={
 
 
 
-var series='mono',variant=DATA.mono[0],state='closed';
+var series='mono',variant=DATA.mono[0],state='closed'; // 3M is now first
 
 
 
@@ -595,7 +593,7 @@ function renderList(){
 
     h+='<div class="detail-rows">';
 
-    h+='<div class="detail-row"><span class="detail-label">'+IC.doorO+' Szer. drzwi</span><span class="detail-value">–</span></div>';
+    h+='<div class="detail-row"><span class="detail-label">'+IC.doorO+' Szer. drzwi</span><span class="detail-value">'+v.doorW+' mm</span></div>';
 
     h+='<div class="detail-row"><span class="detail-label">'+IC.doorC+' Wys. w świetle drzwi</span><span class="detail-value">'+v.doorH+' mm</span></div>';
 
@@ -616,6 +614,10 @@ function renderList(){
     h+='<button class="info-btn" tabindex="-1">'+IC.info+'<span class="tooltip">Ilość komór w ramach jednego unitu</span></button>';
 
     h+='</span><span class="detail-value">'+v.chambers+'</span></div>';
+
+    h+='<div class="detail-row"><span class="detail-label">'+IC.moveD+' Głębokość boxa</span><span class="detail-value">'+v.boxDepth+' mm</span></div>';
+
+    h+='<div class="detail-row"><span class="detail-label">'+IC.moveH+' Szerokość boxa</span><span class="detail-value">'+v.boxWidth+' mm</span></div>';
 
     h+='</div></div>';
 
@@ -709,7 +711,6 @@ document.querySelectorAll('.state-btn').forEach(function(b){
 
 // GLB file map: variantId -> { closed: path, open: path }
 var GLB_MAP = {
-  '2M':  { closed: '2M_closed.glb',  open: '2M_opened.glb'  },
   '3M':  { closed: '3M_closed.glb',  open: '3M_opened.glb'  },
   '6M':  { closed: '6M_closed.glb',  open: '6M_opened.glb'  },
   '9M':  { closed: '9M_closed.glb',  open: '9M_opened.glb'  },
@@ -733,7 +734,7 @@ var renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: fal
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.95;
+renderer.toneMappingExposure = 0.80;
 renderer.setClearColor(0xe2e2e2, 1);
 renderer.physicallyCorrectLights = true;
 
@@ -792,6 +793,8 @@ function loadGLB(variantId, stateKey, resetCamera) {
   if (!map) return;
   var path = map[stateKey] || map.closed;
 
+  // Fade out canvas, show loader
+  cv.classList.add('fade-out');
   document.getElementById('loader').classList.remove('hidden');
 
   loader.load(path, function(gltf) {
@@ -824,9 +827,14 @@ function loadGLB(variantId, stateKey, resetCamera) {
       radius = fit;
     }
 
-    document.getElementById('loader').classList.add('hidden');
+    // Fade canvas back in, hide loader
+    requestAnimationFrame(function() {
+      cv.classList.remove('fade-out');
+      document.getElementById('loader').classList.add('hidden');
+    });
   }, undefined, function(err) {
     console.error('GLB load error:', err);
+    cv.classList.remove('fade-out');
     document.getElementById('loader').classList.add('hidden');
   });
 }
