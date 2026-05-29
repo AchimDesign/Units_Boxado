@@ -745,6 +745,14 @@ var camera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
 var pmremGenerator = new THREE.PMREMGenerator(renderer);
 pmremGenerator.compileEquirectangularShader();
 
+var envReady = false;
+var _envCallbacks = [];
+
+function onEnvReady(cb) {
+  if (envReady) cb();
+  else _envCallbacks.push(cb);
+}
+
 new EXRLoader()
   .load(
     'studio-2nd-floor-cyclorama_1K.exr',
@@ -754,6 +762,9 @@ new EXRLoader()
       scene3.environment = envMap;
       texture.dispose();
       pmremGenerator.dispose();
+      envReady = true;
+      _envCallbacks.forEach(function(cb) { cb(); });
+      _envCallbacks = [];
     }
   );
 
@@ -812,7 +823,7 @@ function loadGLB(variantId, stateKey, resetCamera) {
   _loadPending = setTimeout(function() { fadeOutDone = true; tryReveal(); }, 300);
 
   function tryReveal() {
-    if (!fadeOutDone || !modelReady) return;
+    if (!fadeOutDone || !modelReady || !envReady) return;
 
     // 3. Swap model while canvas is invisible
     if (currentModel) {
@@ -850,7 +861,8 @@ function loadGLB(variantId, stateKey, resetCamera) {
   loader.load(path, function(gltf) {
     loadedGltf = gltf;
     modelReady = true;
-    tryReveal();
+    if (envReady) tryReveal();
+    else onEnvReady(tryReveal);
   }, undefined, function(err) {
     console.error('GLB load error:', err);
     cv.classList.remove('fade-out');
