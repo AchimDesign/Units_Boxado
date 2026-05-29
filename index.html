@@ -144,7 +144,7 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 
 .loader-text{font-size:12px;color:var(--g70);font-weight:500;}
 
-#cv{transition:opacity .25s ease;}
+#cv{transition:opacity .3s ease;}
 #cv.fade-out{opacity:0;}
 
 /* Mobile */
@@ -788,37 +788,49 @@ var loadingModel = false;
 
 var currentVariantId = null;
 
+var _loadPending = null;
+
 function loadGLB(variantId, stateKey, resetCamera) {
   var map = GLB_MAP[variantId];
   if (!map) return;
   var path = map[stateKey] || map.closed;
 
-  // Fade out canvas, show loader
+  // Cancel any pending reveal
+  if (_loadPending) clearTimeout(_loadPending);
+
+  // 1. Fade out canvas + show loader
   cv.classList.add('fade-out');
   document.getElementById('loader').classList.remove('hidden');
 
-  loader.load(path, function(gltf) {
+  // 2. Track fade-out completion and model load separately
+  var fadeOutDone = false;
+  var modelReady = false;
+  var loadedGltf = null;
+  var loadedSize = null;
+
+  // Wait for fade-out CSS transition to finish (250ms)
+  _loadPending = setTimeout(function() { fadeOutDone = true; tryReveal(); }, 300);
+
+  function tryReveal() {
+    if (!fadeOutDone || !modelReady) return;
+
+    // 3. Swap model while canvas is invisible
     if (currentModel) {
       scene3.remove(currentModel);
       currentModel = null;
     }
 
-    var model = gltf.scene;
-
+    var model = loadedGltf.scene;
     var box = new THREE.Box3().setFromObject(model);
     var center = box.getCenter(new THREE.Vector3());
     var size = box.getSize(new THREE.Vector3());
 
-    // Center model exactly at origin (bbox center = 0,0,0)
     model.position.sub(center);
-
     scene3.add(model);
     currentModel = model;
-
-    // Camera target = center of model = origin
     modelCenter.set(0, 0, 0);
 
-    // Only reset camera when switching variant (not open/close toggle)
+    // 4. Set camera instantly (canvas is hidden, no visible jump)
     if (resetCamera) {
       var maxDim = Math.max(size.x, size.y, size.z);
       var fov = camera.fov * (Math.PI / 180);
@@ -827,11 +839,18 @@ function loadGLB(variantId, stateKey, resetCamera) {
       radius = fit;
     }
 
-    // Fade canvas back in, hide loader
+    // 5. Render one frame at new position, THEN fade in
+    renderer.render(scene3, camera);
     requestAnimationFrame(function() {
       cv.classList.remove('fade-out');
       document.getElementById('loader').classList.add('hidden');
     });
+  }
+
+  loader.load(path, function(gltf) {
+    loadedGltf = gltf;
+    modelReady = true;
+    tryReveal();
   }, undefined, function(err) {
     console.error('GLB load error:', err);
     cv.classList.remove('fade-out');
