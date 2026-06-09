@@ -577,9 +577,9 @@ function renderList(){
 
     h+='<div class="detail-row detail-row--desktop"><span class="detail-label">'+IC.moveV+' Wysokość</span><span class="detail-value">'+v.height+' mm</span></div>';
 
-    h+='<div class="detail-row detail-row--desktop"><span class="detail-label">'+IC.moveD+' Długość</span><span class="detail-value">'+v.length+' mm</span></div>';
+    h+='<div class="detail-row detail-row--desktop"><span class="detail-label">'+IC.moveD+' Głębokość</span><span class="detail-value">'+v.length+' mm</span></div>';
 
-    h+='<div class="dims-inline"><strong>'+v.width+' mm</strong> szer. &times; <strong>'+v.length+' mm</strong> dł. &times; <strong>'+v.height+' mm</strong> wys.</div>';
+    h+='<div class="dims-inline"><strong>'+v.width+' mm</strong> szer. &times; <strong>'+v.length+' mm</strong> gł. &times; <strong>'+v.height+' mm</strong> wys.</div>';
 
     h+='</div></div>';
 
@@ -734,7 +734,7 @@ var renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: fal
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.0;
+renderer.toneMappingExposure = 1.15;
 renderer.setClearColor(0xe2e2e2, 1);
 renderer.physicallyCorrectLights = true;
 
