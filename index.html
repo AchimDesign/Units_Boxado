@@ -839,7 +839,7 @@ function loadGLB(variantId, stateKey, resetCamera) {
     model.position.sub(center);
     scene3.add(model);
     currentModel = model;
-    modelCenter.set(0, 0, 0);
+    modelCenter.set(0, -0.12, 0);
 
     // 4. Set camera instantly (canvas is hidden, no visible jump)
     if (resetCamera) {
