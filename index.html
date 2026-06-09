@@ -493,23 +493,23 @@ var DATA={
 
   mono:[
 
-    {id:'3M', m2:3,  length:1605,width:2246,height:2290,doorW:2130,doorH:2015,chambers:1,boxDepth:1450,boxWidth:2133,popular:false},
+    {id:'3M', m2:3,  length:1675,width:2290,height:2246,doorW:2130,doorH:2015,chambers:1,boxDepth:1450,boxWidth:2133,popular:false},
 
-    {id:'6M', m2:6,  length:3070,width:2246,height:2290,doorW:2120,doorH:2015,chambers:1,boxDepth:2910,boxWidth:2150,popular:true},
+    {id:'6M', m2:6,  length:3140,width:2290,height:2246,doorW:2120,doorH:2015,chambers:1,boxDepth:2910,boxWidth:2150,popular:true},
 
-    {id:'9M', m2:9,  length:4535,width:2246,height:2290,doorW:2120,doorH:2015,chambers:1,boxDepth:4370,boxWidth:2150,popular:false},
+    {id:'9M', m2:9,  length:4605,width:2290,height:2246,doorW:2120,doorH:2015,chambers:1,boxDepth:4370,boxWidth:2150,popular:false},
 
-    {id:'12M',m2:12, length:6000,width:2246,height:2290,doorW:2120,doorH:2015,chambers:1,boxDepth:5840,boxWidth:2150,popular:false},
+    {id:'12M',m2:12, length:6070,width:2290,height:2246,doorW:2120,doorH:2015,chambers:1,boxDepth:5840,boxWidth:2150,popular:false},
 
   ],
 
   duo:[
 
-    {id:'6D', m2:6,  length:3070,width:2246,height:2290,doorW:2120,doorH:2015,chambers:2,boxDepth:2150,boxWidth:1445,popular:false},
+    {id:'6D', m2:6,  length:3140,width:2290,height:2246,doorW:2120,doorH:2015,chambers:2,boxDepth:2150,boxWidth:1445,popular:false},
 
-    {id:'9D', m2:9,  length:4535,width:2246,height:2290,doorW:2120,doorH:2015,chambers:2,boxDepth:2150,boxWidth:1440,popular:false},
+    {id:'9D', m2:9,  length:4605,width:2290,height:2246,doorW:2120,doorH:2015,chambers:2,boxDepth:2150,boxWidth:1440,popular:false},
 
-    {id:'12D',m2:12, length:6000,width:2246,height:2290,doorW:2120,doorH:2015,chambers:2,boxDepth:2150,boxWidth:2920,popular:false},
+    {id:'12D',m2:12, length:6070,width:2290,height:2246,doorW:2120,doorH:2015,chambers:2,boxDepth:2150,boxWidth:2920,popular:false},
 
   ],
 
@@ -517,15 +517,15 @@ var DATA={
 
 
 
-    {id:'6S2', m2:6,  length:3070,width:2246,height:2290,doorW:1040,doorH:2015,chambers:2,boxDepth:2150,boxWidth:1445,popular:false},
+    {id:'6S2', m2:6,  length:3140,width:2290,height:2246,doorW:1040,doorH:2015,chambers:2,boxDepth:2150,boxWidth:1445,popular:false},
 
-    {id:'6S3', m2:6,  length:3070,width:2246,height:2290,doorW:770, doorH:2015,chambers:3,boxDepth:2150,boxWidth:956,popular:false},
+    {id:'6S3', m2:6,  length:3140,width:2290,height:2246,doorW:770, doorH:2015,chambers:3,boxDepth:2150,boxWidth:956,popular:false},
 
-    {id:'9S3', m2:9,  length:4535,width:2246,height:2290,doorW:1040,doorH:2015,chambers:3,boxDepth:2150,boxWidth:1440,popular:false},
+    {id:'9S3', m2:9,  length:4605,width:2290,height:2246,doorW:1040,doorH:2015,chambers:3,boxDepth:2150,boxWidth:1440,popular:false},
 
-    {id:'12S4',m2:12, length:6000,width:2246,height:2290,doorW:1040,doorH:2015,chambers:4,boxDepth:2150,boxWidth:1445,popular:false},
+    {id:'12S4',m2:12, length:6070,width:2290,height:2246,doorW:1040,doorH:2015,chambers:4,boxDepth:2150,boxWidth:1445,popular:false},
 
-    {id:'12S6',m2:12, length:6000,width:2246,height:2290,doorW:770, doorH:2015,chambers:6,boxDepth:2150,boxWidth:956,popular:false},
+    {id:'12S6',m2:12, length:6070,width:2290,height:2246,doorW:770, doorH:2015,chambers:6,boxDepth:2150,boxWidth:956,popular:false},
 
   ],
 
@@ -593,7 +593,7 @@ function renderList(){
 
     h+='<div class="detail-rows">';
 
-    h+='<div class="detail-row"><span class="detail-label">'+IC.doorO+' Szer. drzwi</span><span class="detail-value">'+v.doorW+' mm</span></div>';
+    h+='<div class="detail-row"><span class="detail-label">'+IC.doorO+' Szer. w świetle drzwi</span><span class="detail-value">'+v.doorW+' mm</span></div>';
 
     h+='<div class="detail-row"><span class="detail-label">'+IC.doorC+' Wys. w świetle drzwi</span><span class="detail-value">'+v.doorH+' mm</span></div>';
 
@@ -734,7 +734,7 @@ var renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: fal
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.80;
+renderer.toneMappingExposure = 1.0;
 renderer.setClearColor(0xe2e2e2, 1);
 renderer.physicallyCorrectLights = true;
 
