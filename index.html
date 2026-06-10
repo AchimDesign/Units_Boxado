@@ -755,7 +755,7 @@ function onEnvReady(cb) {
 
 new EXRLoader()
   .load(
-    'autumn_hill_view_1k.exr',
+    'sundowner_overlook_1k.exr',
     function(texture) {
       texture.mapping = THREE.EquirectangularReflectionMapping;
       var envMap = pmremGenerator.fromEquirectangular(texture).texture;
