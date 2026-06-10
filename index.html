@@ -203,7 +203,7 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
     "imports": {
       "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
       "three/examples/jsm/loaders/GLTFLoader.js": "https://unpkg.com/three@0.128.0/examples/jsm/loaders/GLTFLoader.js",
-      "three/examples/jsm/loaders/EXRLoader.js": "https://unpkg.com/three@0.128.0/examples/jsm/loaders/EXRLoader.js"
+      "three/examples/jsm/loaders/RGBELoader.js": "https://unpkg.com/three@0.128.0/examples/jsm/loaders/RGBELoader.js"
     }
   }
   </script>
@@ -300,7 +300,7 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 <script type="module">
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 
 var TAGS = {
 
@@ -763,11 +763,11 @@ function activateFallbackLights() {
   fillLight.intensity = 0.8;
 }
 
-new EXRLoader()
+new RGBELoader()
+  .setDataType(THREE.UnsignedByteType)
   .load(
-    'studio_small_08_1k.exr',
+    'studio_small_08_1k.hdr',
     function(texture) {
-      texture.mapping = THREE.EquirectangularReflectionMapping;
       var envMap = pmremGenerator.fromEquirectangular(texture).texture;
       scene3.environment = envMap;
       texture.dispose();
