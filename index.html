@@ -203,8 +203,6 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 .nav-arrow:active{transform:scale(0.82);}
 .nav-arrow svg{width:20px;height:20px;}
 
-.nav-badge{background:var(--black);color:var(--white);padding:6px 14px;border-radius:8px;font-size:14px;font-weight:700;pointer-events:none;transition:opacity 0.2s ease, transform 0.2s ease;}
-.nav-badge.switching{opacity:0;transform:scale(0.85);}
 
 @media(min-width:769px){
   .viewer-nav{display:none;}
@@ -279,7 +277,6 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
           <button class="nav-arrow" id="nav-prev" aria-label="Poprzedni">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5-7 7 7 7"/></svg>
           </button>
-          <div class="nav-badge" id="nav-badge"></div>
           <button class="nav-arrow" id="nav-next" aria-label="Następny">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
           </button>
@@ -995,6 +992,62 @@ document.querySelectorAll('.state-btn').forEach(function(b) {
 
 // Initial load
 tRadius = getRadius(); updateUI(); renderList(); reloadModel(true);
+
+// ═══ Viewer Nav Arrows ═══
+var allVariants = [];
+['mono','duo','side'].forEach(function(s) {
+  DATA[s].forEach(function(v) {
+    allVariants.push({ series: s, variant: v });
+  });
+});
+
+function getCurrentIndex() {
+  for (var i = 0; i < allVariants.length; i++) {
+    if (allVariants[i].variant.id === variant.id) return i;
+  }
+  return 0;
+}
+
+function navigateTo(direction) {
+  var idx = getCurrentIndex();
+  idx = (idx + direction + allVariants.length) % allVariants.length;
+  var target = allVariants[idx];
+
+  if (target.series !== series) {
+    series = target.series;
+    document.querySelectorAll('.series-tab').forEach(function(t) {
+      t.classList.toggle('active', t.dataset.series === series);
+    });
+  }
+
+  variant = target.variant;
+  renderList();
+  updateUI();
+  tRadius = getRadius();
+  reloadModel(true);
+}
+
+var navPrev = document.getElementById('nav-prev');
+var navNext = document.getElementById('nav-next');
+
+['click','touchend'].forEach(function(evt) {
+  navPrev.addEventListener(evt, function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (evt === 'touchend') e.stopImmediatePropagation();
+    navigateTo(-1);
+  }, { passive: false });
+  navNext.addEventListener(evt, function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (evt === 'touchend') e.stopImmediatePropagation();
+    navigateTo(1);
+  }, { passive: false });
+});
+
+// Prevent canvas touch handlers from capturing arrow taps
+navPrev.addEventListener('touchstart', function(e) { e.stopPropagation(); }, { passive: false });
+navNext.addEventListener('touchstart', function(e) { e.stopPropagation(); }, { passive: false });
 </script>
 
 </body>
