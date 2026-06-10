@@ -961,7 +961,7 @@ cv.addEventListener('touchmove', function(e) {
     var dx = e.touches[0].clientX - e.touches[1].clientX;
     var dy = e.touches[0].clientY - e.touches[1].clientY;
     var dist = Math.hypot(dx, dy);
-    if (pinchDist !== null) { var maxR2 = Math.max(30, tRadius * 2); tRadius = Math.max(0.5, Math.min(maxR2, tRadius - (dist - pinchDist) * 0.02)); }
+    if (pinchDist !== null) { var maxR2 = Math.max(30, tRadius * 2); tRadius = Math.max(0.5, Math.min(maxR2, tRadius - (dist - pinchDist) * 0.05)); }
     pinchDist = dist; drag = false;
   } else if (e.touches.length === 1 && drag) {
     tTheta -= (e.touches[0].clientX - lx) * 0.008;
