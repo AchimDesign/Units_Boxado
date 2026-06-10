@@ -136,9 +136,9 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 
 .state-btn.active svg{color:var(--brand);}
 
-.loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;background:#e2e2e2;z-index:10;transition:opacity .35s ease;}
+.loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;background:#e2e2e2;z-index:10;opacity:1;}
 
-.loader.hidden{opacity:0;pointer-events:none;}
+.loader.hidden{opacity:0;pointer-events:none;transition:opacity .3s ease;}
 
 .loader-gif{width:48px;height:48px;}
 
@@ -756,6 +756,13 @@ function onEnvReady(cb) {
   else _envCallbacks.push(cb);
 }
 
+function activateFallbackLights() {
+  // Strong lights for when HDR env fails (iOS Safari, older devices)
+  ambientLight.intensity = 0.6;
+  keyLight.intensity = 2.0;
+  fillLight.intensity = 0.8;
+}
+
 new EXRLoader()
   .load(
     'studio_small_08_1k.exr',
@@ -768,8 +775,28 @@ new EXRLoader()
       envReady = true;
       _envCallbacks.forEach(function(cb) { cb(); });
       _envCallbacks = [];
+    },
+    undefined,
+    function(err) {
+      console.warn('EXR load failed, using fallback lights:', err);
+      activateFallbackLights();
+      pmremGenerator.dispose();
+      envReady = true;
+      _envCallbacks.forEach(function(cb) { cb(); });
+      _envCallbacks = [];
     }
   );
+
+// Timeout fallback — if EXR hasn't loaded in 5s, assume failure
+setTimeout(function() {
+  if (!envReady) {
+    console.warn('EXR load timeout, using fallback lights');
+    activateFallbackLights();
+    envReady = true;
+    _envCallbacks.forEach(function(cb) { cb(); });
+    _envCallbacks = [];
+  }
+}, 5000);
 
 // Subtle fill lights to complement HDR (HDR handles most lighting)
 var ambientLight = new THREE.AmbientLight(0xffffff, 0.15);
@@ -807,17 +834,20 @@ function loadGLB(variantId, stateKey, resetCamera) {
   if (!map) return;
   var path = map[stateKey] || map.closed;
 
-  // Show loader immediately
-  document.getElementById('loader').classList.remove('hidden');
+  var loaderEl = document.getElementById('loader');
+
+  // 1. Show loader instantly (no transition)
+  loaderEl.classList.remove('hidden');
+
+  // 2. Remove old model immediately so nothing shows under loader
+  if (currentModel) {
+    scene3.remove(currentModel);
+    currentModel = null;
+    renderer.render(scene3, camera);
+  }
 
   loader.load(path, function(gltf) {
-    // Wait for env if not ready
     function apply() {
-      if (currentModel) {
-        scene3.remove(currentModel);
-        currentModel = null;
-      }
-
       var model = gltf.scene;
       var box = new THREE.Box3().setFromObject(model);
       var center = box.getCenter(new THREE.Vector3());
@@ -836,15 +866,25 @@ function loadGLB(variantId, stateKey, resetCamera) {
         radius = fit;
       }
 
+      // Update camera position instantly
+      var ex = modelCenter.x + radius * Math.sin(phi) * Math.sin(theta);
+      var ey = modelCenter.y + radius * Math.cos(phi);
+      var ez = modelCenter.z + radius * Math.sin(phi) * Math.cos(theta);
+      camera.position.set(ex, ey, ez);
+      camera.lookAt(modelCenter);
+
+      // Render one clean frame, then hide loader with fade
       renderer.render(scene3, camera);
-      document.getElementById('loader').classList.add('hidden');
+      requestAnimationFrame(function() {
+        loaderEl.classList.add('hidden');
+      });
     }
 
     if (envReady) apply();
     else onEnvReady(apply);
   }, undefined, function(err) {
     console.error('GLB load error:', err);
-    document.getElementById('loader').classList.add('hidden');
+    loaderEl.classList.add('hidden');
   });
 }
 
