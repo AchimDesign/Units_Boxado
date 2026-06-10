@@ -723,7 +723,7 @@ var GLB_MAP = {
   '6S3': { closed: '6M_closed.glb',  open: '6M_opened.glb'  },
   '9S3': { closed: '9M_closed.glb',  open: '9M_opened.glb'  },
   '12S4':{ closed: '12S4_closed.glb', open: '12S4_opened.glb' },
-  '12S6':{ closed: '12M_closed.glb', open: '12M_opened.glb' },
+  '12S6':{ closed: '12S6_closed.glb', open: '12S6_opened.glb' },
 };
 
 var cv = document.getElementById('cv');
@@ -734,7 +734,7 @@ var renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: fal
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
+renderer.toneMappingExposure = 1.3;
 renderer.setClearColor(0xe2e2e2, 1);
 renderer.physicallyCorrectLights = true;
 
