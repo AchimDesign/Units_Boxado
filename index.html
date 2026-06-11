@@ -816,10 +816,15 @@ new RGBELoader()
   .load(
     'studio_small_08_1k.hdr',
     function(texture) {
-      var envMap = pmremGenerator.fromEquirectangular(texture).texture;
-      scene3.environment = envMap;
-      texture.dispose();
-      pmremGenerator.dispose();
+      try {
+        var envMap = pmremGenerator.fromEquirectangular(texture).texture;
+        scene3.environment = envMap;
+        texture.dispose();
+        pmremGenerator.dispose();
+      } catch (e) {
+        console.warn('PMREM generation failed, using fallback:', e);
+        activateFallbackLights();
+      }
       envReady = true;
       _envCallbacks.forEach(function(cb) { cb(); });
       _envCallbacks = [];
