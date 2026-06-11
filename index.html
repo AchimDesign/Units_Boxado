@@ -796,6 +796,21 @@ function activateFallbackLights() {
   pmrem2.dispose();
 }
 
+// Subtle fill lights to complement HDR (HDR handles most lighting)
+var ambientLight = new THREE.AmbientLight(0xffffff, 0.15);
+scene3.add(ambientLight);
+
+// Key directional — adds crisp shadow definition on top of HDR
+var keyLight = new THREE.DirectionalLight(0xfff8f2, 1.2);
+keyLight.position.set(5, 9, 6);
+scene3.add(keyLight);
+
+// Soft fill from opposite side
+var fillLight = new THREE.DirectionalLight(0xe8f0ff, 0.3);
+fillLight.position.set(-5, 3, -3);
+scene3.add(fillLight);
+
+// ═══ Load HDR Environment (after lights are defined) ═══
 new RGBELoader()
   .setDataType(THREE.UnsignedByteType)
   .load(
@@ -831,19 +846,7 @@ setTimeout(function() {
   }
 }, 3000);
 
-// Subtle fill lights to complement HDR (HDR handles most lighting)
-var ambientLight = new THREE.AmbientLight(0xffffff, 0.15);
-scene3.add(ambientLight);
 
-// Key directional — adds crisp shadow definition on top of HDR
-var keyLight = new THREE.DirectionalLight(0xfff8f2, 1.2);
-keyLight.position.set(5, 9, 6);
-scene3.add(keyLight);
-
-// Soft fill from opposite side
-var fillLight = new THREE.DirectionalLight(0xe8f0ff, 0.3);
-fillLight.position.set(-5, 3, -3);
-scene3.add(fillLight);
 
 // Camera orbit state
 var theta = 0.5, phi = 0.85, tTheta = 0.5, tPhi = 0.85;
