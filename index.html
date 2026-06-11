@@ -743,9 +743,9 @@ var GLB_MAP = {
   '6D':  { closed: '6D_closed.glb',  open: '6D_opened.glb'  },
   '9D':  { closed: '9D_closed.glb',  open: '9D_opened.glb'  },
   '12D': { closed: '12D_closed.glb', open: '12D_opened.glb' },
-  '6S2': { closed: '6M_closed.glb',  open: '6M_opened.glb'  },
-  '6S3': { closed: '6M_closed.glb',  open: '6M_opened.glb'  },
-  '9S3': { closed: '9M_closed.glb',  open: '9M_opened.glb'  },
+  '6S2': { closed: '6S2_closed.glb',  open: '6S2_opened.glb'  },
+  '6S3': { closed: '6S3_closed.glb',  open: '6S3_opened.glb'  },
+  '9S3': { closed: '9S3_closed.glb',  open: '9S3_opened.glb'  },
   '12S4':{ closed: '12S4_closed.glb', open: '12S4_opened.glb' },
   '12S6':{ closed: '12S6_closed.glb', open: '12S6_opened.glb' },
 };
@@ -779,9 +779,21 @@ function onEnvReady(cb) {
 
 function activateFallbackLights() {
   // Strong lights for when HDR env fails (iOS Safari, older devices)
-  ambientLight.intensity = 0.6;
-  keyLight.intensity = 2.0;
-  fillLight.intensity = 0.8;
+  ambientLight.intensity = 0.8;
+  keyLight.intensity = 2.5;
+  fillLight.intensity = 1.0;
+
+  // Generate a neutral procedural env map so PBR materials still reflect
+  var pmrem2 = new THREE.PMREMGenerator(renderer);
+  var neutralScene = new THREE.Scene();
+  neutralScene.background = new THREE.Color(0xcccccc);
+  var neutralLight = new THREE.DirectionalLight(0xffffff, 2);
+  neutralLight.position.set(1, 1, 1);
+  neutralScene.add(neutralLight);
+  neutralScene.add(new THREE.AmbientLight(0xffffff, 1));
+  var fallbackEnv = pmrem2.fromScene(neutralScene, 0.04).texture;
+  scene3.environment = fallbackEnv;
+  pmrem2.dispose();
 }
 
 new RGBELoader()
@@ -817,7 +829,7 @@ setTimeout(function() {
     _envCallbacks.forEach(function(cb) { cb(); });
     _envCallbacks = [];
   }
-}, 5000);
+}, 3000);
 
 // Subtle fill lights to complement HDR (HDR handles most lighting)
 var ambientLight = new THREE.AmbientLight(0xffffff, 0.15);
