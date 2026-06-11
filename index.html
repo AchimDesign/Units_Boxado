@@ -755,7 +755,7 @@ var wrap = cv.parentElement;
 
 // Three.js scene setup
 var renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: false });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, /Mobi|Android/i.test(navigator.userAgent) ? 1.5 : 2));
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.3;
@@ -862,25 +862,62 @@ var loadingModel = false;
 
 var currentVariantId = null;
 
+// Dispose all GPU resources from a model
+function disposeModel(obj) {
+  if (!obj) return;
+  obj.traverse(function(child) {
+    if (child.isMesh) {
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) {
+        var mats = Array.isArray(child.material) ? child.material : [child.material];
+        mats.forEach(function(mat) {
+          Object.keys(mat).forEach(function(key) {
+            if (mat[key] && typeof mat[key].dispose === 'function') mat[key].dispose();
+          });
+          mat.dispose();
+        });
+      }
+    }
+  });
+}
+
+// Load cancellation token
+var _loadId = 0;
+
 function loadGLB(variantId, stateKey, resetCamera) {
   var map = GLB_MAP[variantId];
   if (!map) return;
   var path = map[stateKey] || map.closed;
 
   var loaderEl = document.getElementById('loader');
+  var thisLoadId = ++_loadId; // Cancel any previous in-flight load
 
-  // 1. Show loader instantly (no transition)
+  // Show loader instantly
   loaderEl.classList.remove('hidden');
 
-  // 2. Remove old model immediately so nothing shows under loader
+  // Remove + dispose old model
   if (currentModel) {
     scene3.remove(currentModel);
+    disposeModel(currentModel);
     currentModel = null;
     renderer.render(scene3, camera);
   }
 
   loader.load(path, function(gltf) {
+    // If a newer load was triggered, discard this result
+    if (thisLoadId !== _loadId) {
+      disposeModel(gltf.scene);
+      return;
+    }
+
     function apply() {
+      // Double-check: remove any model that snuck in
+      if (currentModel) {
+        scene3.remove(currentModel);
+        disposeModel(currentModel);
+        currentModel = null;
+      }
+
       var model = gltf.scene;
       var box = new THREE.Box3().setFromObject(model);
       var center = box.getCenter(new THREE.Vector3());
@@ -899,15 +936,14 @@ function loadGLB(variantId, stateKey, resetCamera) {
         radius = fit;
       }
 
-      // Update camera position instantly
       var ex = modelCenter.x + radius * Math.sin(phi) * Math.sin(theta);
       var ey = modelCenter.y + radius * Math.cos(phi);
       var ez = modelCenter.z + radius * Math.sin(phi) * Math.cos(theta);
       camera.position.set(ex, ey, ez);
       camera.lookAt(modelCenter);
 
-      // Render one clean frame, then hide loader with fade
       renderer.render(scene3, camera);
+      needsRender = true;
       requestAnimationFrame(function() {
         loaderEl.classList.add('hidden');
       });
@@ -916,6 +952,7 @@ function loadGLB(variantId, stateKey, resetCamera) {
     if (envReady) apply();
     else onEnvReady(apply);
   }, undefined, function(err) {
+    if (thisLoadId !== _loadId) return;
     console.error('GLB load error:', err);
     loaderEl.classList.add('hidden');
   });
@@ -943,12 +980,12 @@ window.addEventListener('mousemove', function(e) {
   if (!drag) return;
   tTheta -= (e.clientX - lx) * 0.008;
   tPhi = Math.max(0.05, Math.min(Math.PI * 0.49, tPhi - (e.clientY - ly) * 0.007));
-  lx = e.clientX; ly = e.clientY;
+  lx = e.clientX; ly = e.clientY; scheduleRender();
 });
 cv.addEventListener('wheel', function(e) {
   e.preventDefault();
   var maxR = Math.max(30, tRadius * 2);
-  tRadius = Math.max(0.5, Math.min(maxR, tRadius + e.deltaY * 0.015));
+  tRadius = Math.max(0.5, Math.min(maxR, tRadius + e.deltaY * 0.015)); scheduleRender();
 }, { passive: false });
 cv.addEventListener('touchstart', function(e) {
   e.preventDefault();
@@ -975,7 +1012,7 @@ cv.addEventListener('touchmove', function(e) {
   } else if (e.touches.length === 1 && drag) {
     tTheta -= (e.touches[0].clientX - lx) * 0.008;
     tPhi = Math.max(0.05, Math.min(Math.PI * 0.49, tPhi - (e.touches[0].clientY - ly) * 0.007));
-    lx = e.touches[0].clientX; ly = e.touches[0].clientY;
+    lx = e.touches[0].clientX; ly = e.touches[0].clientY; scheduleRender();
   }
 }, { passive: false });
 
