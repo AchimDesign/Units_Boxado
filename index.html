@@ -1016,9 +1016,29 @@ cv.addEventListener('touchmove', function(e) {
   }
 }, { passive: false });
 
-// Render loop
+// On-demand render loop
+var needsRender = true;
+var renderTimeout = null;
+
+function scheduleRender() {
+  needsRender = true;
+  clearTimeout(renderTimeout);
+  renderTimeout = setTimeout(function() { needsRender = false; }, 1500);
+}
+
 (function frame() {
   requestAnimationFrame(frame);
+
+  var dTheta = Math.abs(tTheta - theta);
+  var dPhi = Math.abs(tPhi - phi);
+  var dRadius = Math.abs(tRadius - radius);
+
+  if (dTheta > 0.0001 || dPhi > 0.0001 || dRadius > 0.001) {
+    needsRender = true;
+  }
+
+  if (!needsRender) return;
+
   theta += (tTheta - theta) * 0.1;
   phi   += (tPhi   - phi)   * 0.1;
   radius += (tRadius - radius) * 0.1;
@@ -1030,6 +1050,10 @@ cv.addEventListener('touchmove', function(e) {
   camera.lookAt(modelCenter);
 
   renderer.render(scene3, camera);
+
+  if (dTheta < 0.0001 && dPhi < 0.0001 && dRadius < 0.001) {
+    needsRender = false;
+  }
 })();
 
 // State toggle: reload model on state change
@@ -1074,6 +1098,7 @@ function navigateTo(direction) {
   updateUI();
   tRadius = getRadius();
   reloadModel(true);
+  needsRender = true;
 }
 
 var navPrev = document.getElementById('nav-prev');
