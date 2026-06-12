@@ -209,6 +209,127 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 @media(min-width:769px){
   .viewer-nav{display:none;}
 }
+
+/* ═══════════ Mobile new layout ═══════════ */
+@media(max-width:768px){
+  /* Hide existing mobile elements that are replaced */
+  .cta-sticky{display:none !important;}
+  .state-toggle{display:none !important;}
+  .sidebar-card .sidebar-header{display:none !important;}
+  .sidebar-card .sidebar-content{display:none !important;}
+  .sidebar-card .cta-wrap{display:none !important;}
+  .mobile-size-label{display:none !important;}
+
+  /* New mobile shell — full viewport, no scroll */
+  html, body { overflow: hidden; }
+  .shell{height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding:4px;gap:0;}
+  .sidebar{display:none;}
+  .viewer-area{display:flex;flex:1;min-height:0;}
+
+  .viewer-card{
+    background:var(--white);border:1px solid var(--g20);border-radius:var(--r-m);
+    flex:1;display:flex;flex-direction:column;padding:12px;gap:8px;min-height:0;
+    border-left:1px solid var(--g20);border-right:1px solid var(--g20);border-top:1px solid var(--g20);
+  }
+
+  /* Mobile header inside viewer-card */
+  .mobile-header{display:flex;flex-direction:column;gap:8px;flex-shrink:0;}
+  .mobile-header-title{font-size:14px;font-weight:600;line-height:1.5;color:var(--black);}
+  .mobile-series-tabs{display:flex;gap:10px;}
+  .mobile-series-tab{flex:1;height:40px;border:1px solid var(--g20);background:var(--white);border-radius:var(--r-s);font-family:inherit;font-size:12px;font-weight:600;color:var(--black);cursor:pointer;transition:background .15s,color .15s,border-color .15s;}
+  .mobile-series-tab.active{background:var(--brand-soft, #fcece8);color:var(--brand);border-color:transparent;}
+  .mobile-series-tab:active{transform:scale(0.97);}
+
+  /* Viewer inner — mobile */
+  .viewer-inner{
+    background:var(--g10);border-radius:var(--r-s);position:relative;overflow:hidden;
+    flex:1;display:flex;flex-direction:column;justify-content:space-between;
+    padding:12px;min-height:0;align-items:stretch;
+  }
+  #cv{position:absolute;inset:0;width:100%;height:100%;display:block;}
+
+  /* Overlay rows in viewer (top & bottom) */
+  .mobile-viewer-top, .mobile-viewer-bottom{
+    position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;width:100%;flex-shrink:0;
+  }
+
+  /* Override model-tag for mobile */
+  .model-tag{
+    position:relative !important;top:auto !important;left:auto !important;
+    cursor:pointer;
+  }
+  .model-tag:active{transform:scale(0.94);}
+
+  /* m² badge */
+  .badge-m2{background:var(--white);color:var(--black);padding:4px 6px;border-radius:var(--r-s);font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;line-height:1.5;}
+  .badge-m2 svg{width:12px;height:12px;}
+  .badge-m2 sup{font-size:8px;}
+
+  /* Override viewer-nav to be inline in bottom row */
+  .viewer-nav{display:none !important;}
+
+  /* New mobile nav arrows */
+  .m-nav-arrow{width:32px;height:32px;border-radius:50%;background:var(--black);color:var(--white);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:transform .15s;}
+  .m-nav-arrow:active{transform:scale(0.85);}
+  .m-nav-arrow svg{width:16px;height:16px;}
+
+  /* Door toggle */
+  .door-toggle{display:flex;align-items:center;gap:8px;}
+  .door-toggle svg{width:20px;height:20px;color:var(--brand);transition:color .15s;}
+  .door-toggle .door-icon-closed{display:none;}
+  .door-toggle[data-state="closed"] .door-icon-open{display:none;}
+  .door-toggle[data-state="closed"] .door-icon-closed{display:block;}
+
+  .switcher{width:36px;height:20px;border-radius:100px;background:var(--g30, #c3c3c3);padding:2px;border:none;cursor:pointer;position:relative;transition:background .2s;}
+  .switcher::after{content:'';width:16px;height:16px;background:var(--white);border-radius:50%;position:absolute;top:2px;left:2px;transition:transform .2s;}
+  .door-toggle[data-state="open"] .switcher{background:var(--brand);}
+  .door-toggle[data-state="open"] .switcher::after{transform:translateX(16px);}
+
+  /* Footer CTAs */
+  .mobile-footer{display:flex;gap:8px;flex-shrink:0;}
+  .mobile-footer .cta{flex:1;height:40px;border-radius:var(--r-s);border:1px solid var(--g20);background:var(--white);color:var(--black);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none;transition:transform .15s;}
+  .mobile-footer .cta:active{transform:scale(0.97);}
+  .mobile-footer .cta-primary{background:var(--brand);color:var(--white);border-color:var(--brand);}
+
+  /* Loader override — clip to viewer-inner only */
+  .loader{position:absolute;inset:0;background:var(--g10);}
+}
+
+@media(min-width:769px){
+  /* Mobile-only elements hidden on desktop */
+  .mobile-header, .mobile-viewer-top, .mobile-viewer-bottom, .mobile-footer{display:none !important;}
+  .badge-m2{display:none !important;}
+  .door-toggle{display:none !important;}
+  .m-nav-arrow{display:none !important;}
+  .drawer, .backdrop{display:none !important;}
+}
+
+/* ═══════════ Drawer (mobile only) ═══════════ */
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:90;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+.backdrop.open{opacity:1;pointer-events:auto;}
+
+.drawer{position:fixed;left:0;right:0;bottom:0;max-height:85vh;max-height:85dvh;background:var(--white);border-radius:16px 16px 0 0;box-shadow:0 -4px 16px rgba(0,0,0,.16);z-index:100;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;will-change:transform;}
+.drawer.open{transform:translateY(0);}
+.drawer.dragging{transition:none;}
+
+.drawer-handle-area{padding-top:8px;padding-bottom:12px;flex-shrink:0;display:flex;justify-content:center;touch-action:none;}
+.drawer-handle{width:72px;height:3px;background:var(--g20);border-radius:100px;}
+
+.drawer-content{flex:1 1 auto;min-height:0;overflow-y:auto;padding:0 20px 20px;display:flex;flex-direction:column;gap:20px;-webkit-overflow-scrolling:touch;}
+
+.drawer-section{display:flex;flex-direction:column;gap:12px;}
+.drawer-section-title{font-size:9px;font-weight:500;color:var(--g70, #747474);text-transform:uppercase;letter-spacing:.05em;line-height:1;}
+.drawer-rows{display:flex;flex-direction:column;gap:8px;}
+.drawer-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.drawer-label{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--black);line-height:1.5;}
+.drawer-label svg{width:16px;height:16px;color:var(--brand);flex-shrink:0;}
+.drawer-value{font-size:12px;font-weight:400;color:var(--g100, #1f1f1f);line-height:1.5;white-space:nowrap;}
+.drawer-value sup{font-size:65%;}
+
+.drawer-cta{margin-top:4px;height:40px;flex-shrink:0;border:1px solid var(--g20);background:var(--white);color:var(--black);font-family:inherit;font-size:12px;font-weight:600;border-radius:var(--r-s);cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;}
+
+.drawer .info-btn{background:none;border:none;padding:0;cursor:pointer;display:inline-flex;color:var(--g70, #747474);}
+.drawer .info-btn svg{width:14px;height:14px;color:var(--g70, #747474);}
 </style>
 
   <script async src="https://ga.jspm.io/npm:es-module-shims@1.8.0/dist/es-module-shims.js"></script>
@@ -271,14 +392,47 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 
     <div class="viewer-card">
 
+      <!-- Mobile header (visible only on mobile) -->
+      <div class="mobile-header">
+        <p class="mobile-header-title">Wybierz typ unitu</p>
+        <div class="mobile-series-tabs" id="mobile-series-tabs">
+          <button class="mobile-series-tab active" data-series="mono">Mono</button>
+          <button class="mobile-series-tab" data-series="duo">Duo</button>
+          <button class="mobile-series-tab" data-series="side">Side</button>
+        </div>
+      </div>
+
       <div class="viewer-inner">
 
         <canvas id="cv"></canvas>
 
         <div class="loader" id="loader"><img class="loader-gif" src="LoopedSquirrelRun.gif" alt="Loading"><div class="loader-text">Ładowanie modelu…</div></div>
 
-        <div class="model-tag" id="model-tag"></div>
+        <!-- Mobile top: model badge + m² -->
+        <div class="mobile-viewer-top">
+          <div class="model-tag" id="model-tag"></div>
+          <div class="badge-m2" id="badge-m2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
+            <span><span id="m2-value">3</span> m<sup>2</sup></span>
+          </div>
+        </div>
 
+        <!-- Mobile bottom: arrows + door toggle -->
+        <div class="mobile-viewer-bottom">
+          <button class="m-nav-arrow" id="m-nav-prev" aria-label="Poprzedni">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5-7 7 7 7"/></svg>
+          </button>
+          <div class="door-toggle" id="door-toggle" data-state="closed">
+            <svg class="door-icon-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20H2"/><path d="M11 4.562v16.157a1 1 0 0 0 1.242.97L19 20V5.562a2 2 0 0 0-1.515-1.94l-5-1.25A1 1 0 0 0 11 3.342Z"/><path d="M11 4H8a2 2 0 0 0-2 2v14"/><path d="M14 12h.01"/><path d="M22 20h-3"/></svg>
+            <svg class="door-icon-closed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V6a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14"/><path d="M2 20h20"/><path d="M14 12v.01"/></svg>
+            <button class="switcher" id="switcher" aria-label="Toggle drzwi"></button>
+          </div>
+          <button class="m-nav-arrow" id="m-nav-next" aria-label="Następny">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </button>
+        </div>
+
+        <!-- Desktop nav (kept for >768px) -->
         <div class="viewer-nav">
           <button class="nav-arrow" id="nav-prev" aria-label="Poprzedni">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5-7 7 7 7"/></svg>
@@ -288,6 +442,12 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
           </button>
         </div>
 
+      </div>
+
+      <!-- Mobile footer CTAs (inside viewer-card, below viewer-inner) -->
+      <div class="mobile-footer">
+        <a href="https://biz.boxado.com" class="cta cta-primary">Zapytaj o wycenę</a>
+        <button class="cta" id="open-drawer">Zobacz specyfikację</button>
       </div>
 
       <div class="state-toggle">
@@ -1139,7 +1299,228 @@ var navNext = document.getElementById('nav-next');
 // Prevent canvas touch handlers from capturing arrow taps
 navPrev.addEventListener('touchstart', function(e) { e.stopPropagation(); }, { passive: false });
 navNext.addEventListener('touchstart', function(e) { e.stopPropagation(); }, { passive: false });
+
+
+// ═══════════ Mobile UI ═══════════
+var SERIES_LABEL = { mono: 'Mono', duo: 'Duo', side: 'Side' };
+
+// Lucide icons for drawer
+var IC_DRAWER = {
+  tag: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>',
+  swatch: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 17a4 4 0 0 1-8 0V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2z"/><path d="M16.7 13H19a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H9"/><path d="M 7 17h.01"/><path d="m11 8 2.3-2.3a2.4 2.4 0 0 1 3.404.004L18.6 7.6a2.4 2.4 0 0 1 .026 3.434L9.9 19.8"/></svg>',
+  scan: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg>',
+  moveH: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 8 4 4-4 4"/><path d="M2 12h20"/><path d="m6 8-4 4 4 4"/></svg>',
+  moveV: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="m8 18 4 4 4-4"/><path d="m8 6 4-4 4 4"/></svg>',
+  moveD: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 19H5v-6"/><path d="M13 5h6v6"/><path d="M19 5 5 19"/></svg>',
+  ruler: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg>',
+  doorOpen: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20H2"/><path d="M11 4.562v16.157a1 1 0 0 0 1.242.97L19 20V5.562a2 2 0 0 0-1.515-1.94l-5-1.25A1 1 0 0 0 11 3.342Z"/><path d="M11 4H8a2 2 0 0 0-2 2v14"/><path d="M14 12h.01"/><path d="M22 20h-3"/></svg>',
+  doorClosed: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V6a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14"/><path d="M2 20h20"/><path d="M14 12v.01"/></svg>',
+  box: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>',
+  info: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>',
+};
+
+// Update m² badge + render drawer on every variant change
+function updateMobileUI() {
+  var m2el = document.getElementById('m2-value');
+  if (m2el) m2el.textContent = variant.m2;
+
+  // Sync mobile series tabs
+  document.querySelectorAll('.mobile-series-tab').forEach(function(t) {
+    t.classList.toggle('active', t.dataset.series === series);
+  });
+
+  renderDrawer();
+}
+
+function drawerRow(icon, label, value) {
+  return '<div class="drawer-row"><div class="drawer-label">' + icon + label + '</div><div class="drawer-value">' + value + '</div></div>';
+}
+
+function renderDrawer() {
+  var v = variant;
+  var html = '';
+
+  html += '<div class="drawer-section"><div class="drawer-section-title">Informacje ogólne</div><div class="drawer-rows">';
+  html += drawerRow(IC_DRAWER.tag, 'Nazwa', v.id);
+  html += drawerRow(IC_DRAWER.swatch, 'Typ', SERIES_LABEL[series]);
+  html += drawerRow(IC_DRAWER.scan, 'Metraż', v.m2 + ' m<sup>2</sup>');
+  html += '</div></div>';
+
+  html += '<div class="drawer-section"><div class="drawer-section-title">Wymiary zewnętrzne</div><div class="drawer-rows">';
+  html += drawerRow(IC_DRAWER.moveH, 'Szerokość', v.width + ' mm');
+  html += drawerRow(IC_DRAWER.moveV, 'Wysokość', v.height + ' mm');
+  html += drawerRow(IC_DRAWER.moveD, 'Głębokość', v.length + ' mm');
+  html += drawerRow(IC_DRAWER.ruler, 'Grubość blachy', '0,5–0,7 mm');
+  html += '</div></div>';
+
+  html += '<div class="drawer-section"><div class="drawer-section-title">Wymiary drzwi</div><div class="drawer-rows">';
+  html += drawerRow(IC_DRAWER.doorOpen, 'Szer. w świetle drzwi', v.doorW + ' mm');
+  html += drawerRow(IC_DRAWER.doorClosed, 'Wys. w świetle drzwi', v.doorH + ' mm');
+  html += '</div></div>';
+
+  html += '<div class="drawer-section"><div class="drawer-section-title">Boxy</div><div class="drawer-rows">';
+  html += '<div class="drawer-row"><div class="drawer-label">' + IC_DRAWER.box + 'Ilość boxów <button class="info-btn">' + IC_DRAWER.info + '</button></div><div class="drawer-value">' + v.chambers + '</div></div>';
+  html += drawerRow(IC_DRAWER.moveD, 'Głębokość boxa', v.boxDepth + ' mm');
+  html += drawerRow(IC_DRAWER.moveH, 'Szerokość boxa', v.boxWidth + ' mm');
+  html += '</div></div>';
+
+  html += '<a href="#" class="drawer-cta">Pobierz specyfikację PDF</a>';
+
+  var dc = document.getElementById('drawer-content');
+  if (dc) dc.innerHTML = html;
+}
+
+// Hook into existing flow — call updateMobileUI whenever desktop UI updates
+var _origUpdateUI = typeof updateUI === 'function' ? updateUI : null;
+if (_origUpdateUI) {
+  updateUI = function() {
+    _origUpdateUI.apply(this, arguments);
+    updateMobileUI();
+  };
+}
+
+// Mobile series tabs → reuse desktop logic
+document.querySelectorAll('.mobile-series-tab').forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    if (tab.dataset.series === series) return;
+    series = tab.dataset.series;
+    variant = DATA[series][0];
+    if (typeof renderList === 'function') renderList();
+    updateUI();
+    tRadius = getRadius();
+    reloadModel(true);
+  });
+});
+
+// Mobile nav arrows — reuse navigateTo() if defined, otherwise inline
+function mobileNavigate(direction) {
+  if (typeof navigateTo === 'function') {
+    navigateTo(direction);
+  }
+}
+var mNavPrev = document.getElementById('m-nav-prev');
+var mNavNext = document.getElementById('m-nav-next');
+if (mNavPrev && mNavNext) {
+  ['click','touchend'].forEach(function(evt) {
+    mNavPrev.addEventListener(evt, function(e) { e.preventDefault(); e.stopPropagation(); mobileNavigate(-1); }, { passive: false });
+    mNavNext.addEventListener(evt, function(e) { e.preventDefault(); e.stopPropagation(); mobileNavigate(1); }, { passive: false });
+  });
+}
+
+// Door toggle (mobile only — desktop has state-toggle buttons)
+var doorToggleEl = document.getElementById('door-toggle');
+var switcherEl = document.getElementById('switcher');
+if (switcherEl) {
+  switcherEl.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var newState = doorToggleEl.dataset.state === 'closed' ? 'open' : 'closed';
+    doorToggleEl.dataset.state = newState;
+    state = newState;
+    // Sync desktop state-toggle buttons
+    document.querySelectorAll('.state-btn').forEach(function(b) {
+      b.classList.toggle('active', b.dataset.state === newState);
+    });
+    reloadModel(false);
+  });
+}
+
+// Sync mobile door toggle when desktop state-toggle is used
+document.querySelectorAll('.state-btn').forEach(function(b) {
+  b.addEventListener('click', function() {
+    if (doorToggleEl) doorToggleEl.dataset.state = b.dataset.state;
+  });
+});
+
+// Drawer
+var drawerEl = document.getElementById('drawer');
+var backdropEl = document.getElementById('backdrop');
+var drawerHandleArea = document.getElementById('drawer-handle-area');
+var drawerContentEl = document.getElementById('drawer-content');
+
+function openDrawer() {
+  drawerEl.classList.add('open');
+  backdropEl.classList.add('open');
+  drawerEl.setAttribute('aria-hidden', 'false');
+}
+function closeDrawer() {
+  drawerEl.classList.remove('open');
+  backdropEl.classList.remove('open');
+  drawerEl.setAttribute('aria-hidden', 'true');
+}
+
+var openDrawerBtn = document.getElementById('open-drawer');
+if (openDrawerBtn) openDrawerBtn.addEventListener('click', openDrawer);
+
+// Tap on model-tag (badge) opens drawer on mobile
+var modelTagEl = document.getElementById('model-tag');
+if (modelTagEl) {
+  modelTagEl.addEventListener('click', function() {
+    if (window.innerWidth <= 768) openDrawer();
+  });
+}
+
+backdropEl.addEventListener('click', closeDrawer);
+
+// Drag-to-close on entire drawer (smart)
+var dDragStartY = 0, dDragStartX = 0, dDragCurrentY = 0;
+var dDragging = false, dDragDecided = false;
+
+drawerEl.addEventListener('touchstart', function(e) {
+  if (e.touches.length !== 1) return;
+  dDragStartY = e.touches[0].clientY;
+  dDragStartX = e.touches[0].clientX;
+  dDragCurrentY = 0;
+  dDragging = false;
+  dDragDecided = false;
+}, { passive: true });
+
+drawerEl.addEventListener('touchmove', function(e) {
+  if (e.touches.length !== 1) return;
+  var dy = e.touches[0].clientY - dDragStartY;
+  var dx = e.touches[0].clientX - dDragStartX;
+
+  if (!dDragDecided) {
+    if (Math.abs(dy) < 6 && Math.abs(dx) < 6) return;
+    var movingDown = dy > 0;
+    var mostlyVertical = Math.abs(dy) > Math.abs(dx) * 1.2;
+    var atTop = drawerContentEl.scrollTop <= 0;
+    if (movingDown && mostlyVertical && atTop) {
+      dDragging = true;
+      drawerEl.classList.add('dragging');
+    }
+    dDragDecided = true;
+  }
+
+  if (dDragging) {
+    if (e.cancelable) e.preventDefault();
+    dDragCurrentY = Math.max(0, dy);
+    drawerEl.style.transform = 'translateY(' + dDragCurrentY + 'px)';
+  }
+}, { passive: false });
+
+drawerEl.addEventListener('touchend', function() {
+  if (!dDragging) return;
+  dDragging = false;
+  dDragDecided = false;
+  drawerEl.classList.remove('dragging');
+  drawerEl.style.transform = '';
+  if (dDragCurrentY > 100) closeDrawer();
+});
+
+// Initial mobile UI sync
+updateMobileUI();
+
 </script>
+
+
+<!-- Mobile drawer -->
+<div class="backdrop" id="backdrop"></div>
+<div class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-handle-area" id="drawer-handle-area">
+    <div class="drawer-handle"></div>
+  </div>
+  <div class="drawer-content" id="drawer-content"></div>
+</div>
 
 </body>
 
