@@ -985,21 +985,71 @@ function onEnvReady(cb) {
 }
 
 function activateFallbackLights() {
-  // Strong lights for when HDR env fails (iOS Safari, older devices)
-  ambientLight.intensity = 0.8;
-  keyLight.intensity = 2.5;
-  fillLight.intensity = 1.0;
+  // Boosted scene lights for direct shading
+  ambientLight.intensity = 0.55;
+  keyLight.intensity = 2.2;
+  fillLight.intensity = 0.7;
 
-  // Generate a neutral procedural env map so PBR materials still reflect
+  // Generate a studio-like procedural env map with vertical gradient + 2 area lights
   var pmrem2 = new THREE.PMREMGenerator(renderer);
   var neutralScene = new THREE.Scene();
-  neutralScene.background = new THREE.Color(0xcccccc);
-  var neutralLight = new THREE.DirectionalLight(0xffffff, 2);
-  neutralLight.position.set(1, 1, 1);
-  neutralScene.add(neutralLight);
-  neutralScene.add(new THREE.AmbientLight(0xffffff, 1));
+
+  // Gradient backdrop: warm-white top → cool-grey horizon → soft warm floor
+  // Approximated by a sphere with vertex colors
+  var skyGeo = new THREE.SphereGeometry(50, 32, 16);
+  var skyMat = new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    depthWrite: false,
+    uniforms: {
+      topColor:    { value: new THREE.Color(0xfaf7f2) },
+      midColor:    { value: new THREE.Color(0xe8e6e2) },
+      bottomColor: { value: new THREE.Color(0xc9b8a6) },
+    },
+    vertexShader: [
+      'varying vec3 vWorldPos;',
+      'void main(){',
+      '  vec4 wp = modelMatrix * vec4(position, 1.0);',
+      '  vWorldPos = wp.xyz;',
+      '  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
+      '}'
+    ].join('\\n'),
+    fragmentShader: [
+      'uniform vec3 topColor;',
+      'uniform vec3 midColor;',
+      'uniform vec3 bottomColor;',
+      'varying vec3 vWorldPos;',
+      'void main(){',
+      '  float h = normalize(vWorldPos).y;',
+      '  vec3 col;',
+      '  if (h > 0.0) {',
+      '    col = mix(midColor, topColor, smoothstep(0.0, 0.6, h));',
+      '  } else {',
+      '    col = mix(midColor, bottomColor, smoothstep(0.0, 0.5, -h));',
+      '  }',
+      '  gl_FragColor = vec4(col, 1.0);',
+      '}'
+    ].join('\\n')
+  });
+  var sky = new THREE.Mesh(skyGeo, skyMat);
+  neutralScene.add(sky);
+
+  // Two area lights to add specular highlights in env reflections
+  var l1 = new THREE.DirectionalLight(0xfff5e6, 2.2); // warm key
+  l1.position.set(3, 5, 2);
+  neutralScene.add(l1);
+  var l2 = new THREE.DirectionalLight(0xd8e6ff, 1.4); // cool fill
+  l2.position.set(-4, 3, -2);
+  neutralScene.add(l2);
+
+  // Subtle ambient to lift shadows in the env
+  neutralScene.add(new THREE.AmbientLight(0xffffff, 0.3));
+
   var fallbackEnv = pmrem2.fromScene(neutralScene, 0.04).texture;
   scene3.environment = fallbackEnv;
+
+  // Cleanup
+  skyGeo.dispose();
+  skyMat.dispose();
   pmrem2.dispose();
 }
 
