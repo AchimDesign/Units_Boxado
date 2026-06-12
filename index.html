@@ -930,14 +930,14 @@ var isMobile = /Mobi|Android/i.test(navigator.userAgent);
 
 var renderer = new THREE.WebGLRenderer({
   canvas: cv,
-  antialias: !isInIframe, // disable MSAA in iframe to save GPU memory
+  antialias: true,
   alpha: false,
   powerPreference: 'high-performance',
   failIfMajorPerformanceCaveat: false
 });
 
 // Pixel ratio: iframe = 1, mobile = 1.5, desktop = 2
-var targetPixelRatio = isInIframe ? 1 : (isMobile ? 1.5 : 2);
+var targetPixelRatio = isInIframe ? 1.25 : (isMobile ? 1.5 : 2);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, targetPixelRatio));
 
 // WebGL context loss handler — recover instead of crashing
