@@ -1268,17 +1268,79 @@ cv.addEventListener('touchmove', function(e) {
 }, { passive: false });
 
 // On-demand render loop
+// ═══════════ Adaptive Quality ═══════════
+// Three DPR tiers: HIGH (idle), MID (light interaction), LOW (heavy interaction / low fps)
+var DPR_HIGH = targetPixelRatio;
+var DPR_MID = Math.max(0.85, targetPixelRatio - 0.4);
+var DPR_LOW = Math.max(0.5, targetPixelRatio - 0.8);
+var currentDPR = DPR_HIGH;
+
+// FPS tracking (rolling average over 20 frames)
+var fpsSamples = [];
+var FPS_WINDOW = 20;
+var lastFrameTime = performance.now();
+var avgFps = 60;
+
+// Quality state machine
+var QUALITY_HIGH = 'high';
+var QUALITY_MID = 'mid';
+var QUALITY_LOW = 'low';
+var currentQuality = QUALITY_HIGH;
+
+function setQuality(q) {
+  if (q === currentQuality) return;
+  currentQuality = q;
+  var newDPR = q === QUALITY_HIGH ? DPR_HIGH : (q === QUALITY_MID ? DPR_MID : DPR_LOW);
+  if (Math.abs(newDPR - currentDPR) < 0.01) return;
+  currentDPR = newDPR;
+  renderer.setPixelRatio(newDPR);
+  needsRender = true;
+}
+
+// Detect interaction → drop to mid quality during, restore after
+var interactionTimeout = null;
+function noteInteraction() {
+  setQuality(QUALITY_MID);
+  clearTimeout(interactionTimeout);
+  interactionTimeout = setTimeout(function() {
+    setQuality(avgFps < 30 ? QUALITY_LOW : QUALITY_HIGH);
+  }, 250);
+}
+
 var needsRender = true;
 var renderTimeout = null;
 
 function scheduleRender() {
   needsRender = true;
+  noteInteraction();
   clearTimeout(renderTimeout);
   renderTimeout = setTimeout(function() { needsRender = false; }, 1500);
 }
 
 (function frame() {
   requestAnimationFrame(frame);
+
+  // FPS measurement
+  var now = performance.now();
+  var delta = now - lastFrameTime;
+  lastFrameTime = now;
+  if (delta > 0 && delta < 200) { // ignore long stalls
+    var fps = 1000 / delta;
+    fpsSamples.push(fps);
+    if (fpsSamples.length > FPS_WINDOW) fpsSamples.shift();
+    var sum = 0;
+    for (var i = 0; i < fpsSamples.length; i++) sum += fpsSamples[i];
+    avgFps = sum / fpsSamples.length;
+
+    // If sustained low FPS in non-interaction state, drop to LOW
+    if (currentQuality === QUALITY_HIGH && fpsSamples.length >= FPS_WINDOW && avgFps < 30) {
+      setQuality(QUALITY_LOW);
+    }
+    // If recovered, allow back to HIGH
+    else if (currentQuality === QUALITY_LOW && avgFps > 50 && fpsSamples.length >= FPS_WINDOW) {
+      setQuality(QUALITY_HIGH);
+    }
+  }
 
   var dTheta = Math.abs(tTheta - theta);
   var dPhi = Math.abs(tPhi - phi);
