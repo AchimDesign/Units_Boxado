@@ -28,7 +28,7 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 
 .sidebar-card{background:var(--white);border:1px solid var(--g20);border-radius:var(--r-xl);display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;}
 
-.sidebar-content{padding:16px;display:flex;flex-direction:column;gap:12px;flex:1;overflow-y:auto;min-height:0;scrollbar-width:none;-ms-overflow-style:none;}
+.sidebar-content{padding:16px;padding-top:12px;display:flex;flex-direction:column;gap:12px;flex:1;overflow-y:auto;min-height:0;scrollbar-width:none;-ms-overflow-style:none;}
 
 .sidebar-content::-webkit-scrollbar{display:none;}
 
@@ -97,6 +97,8 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 .info-btn:hover .tooltip{visibility:visible;opacity:1;}
 
 /* CTA */
+
+.sidebar-header{padding:16px;padding-bottom:12px;display:flex;flex-direction:column;gap:12px;flex-shrink:0;border-bottom:1px solid var(--g10);background:var(--white);}
 
 .cta-wrap{padding:16px;padding-top:12px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;border-top:1px solid var(--g10);background:var(--white);}
 
@@ -229,7 +231,7 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 
     <div class="sidebar-card">
 
-      <div class="sidebar-content">
+      <div class="sidebar-header">
 
         <p class="sidebar-title">Wybierz typ unitu</p>
 
@@ -242,6 +244,10 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
           <button class="series-tab" data-series="side">Side</button>
 
         </div>
+
+      </div>
+
+      <div class="sidebar-content">
 
         <div class="mobile-size-label">Wielkość</div>
 
