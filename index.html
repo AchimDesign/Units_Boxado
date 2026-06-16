@@ -1203,30 +1203,30 @@ function activateFallbackLights() {
       midColor:    { value: new THREE.Color(0xe8e6e2) },
       bottomColor: { value: new THREE.Color(0xc9b8a6) },
     },
-    vertexShader: [
-      'varying vec3 vWorldPos;',
-      'void main(){',
-      '  vec4 wp = modelMatrix * vec4(position, 1.0);',
-      '  vWorldPos = wp.xyz;',
-      '  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
-      '}'
-    ].join('\\n'),
-    fragmentShader: [
-      'uniform vec3 topColor;',
-      'uniform vec3 midColor;',
-      'uniform vec3 bottomColor;',
-      'varying vec3 vWorldPos;',
-      'void main(){',
-      '  float h = normalize(vWorldPos).y;',
-      '  vec3 col;',
-      '  if (h > 0.0) {',
-      '    col = mix(midColor, topColor, smoothstep(0.0, 0.6, h));',
-      '  } else {',
-      '    col = mix(midColor, bottomColor, smoothstep(0.0, 0.5, -h));',
-      '  }',
-      '  gl_FragColor = vec4(col, 1.0);',
-      '}'
-    ].join('\\n')
+    vertexShader: `
+      varying vec3 vWorldPos;
+      void main(){
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vWorldPos = wp.xyz;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 topColor;
+      uniform vec3 midColor;
+      uniform vec3 bottomColor;
+      varying vec3 vWorldPos;
+      void main(){
+        float h = normalize(vWorldPos).y;
+        vec3 col;
+        if (h > 0.0) {
+          col = mix(midColor, topColor, smoothstep(0.0, 0.6, h));
+        } else {
+          col = mix(midColor, bottomColor, smoothstep(0.0, 0.5, -h));
+        }
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `
   });
   var sky = new THREE.Mesh(skyGeo, skyMat);
   neutralScene.add(sky);
