@@ -1142,37 +1142,40 @@ var renderer = new THREE.WebGLRenderer({
 var targetPixelRatio = isInIframe ? 1.25 : (isMobile ? 1.5 : 2);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, targetPixelRatio));
 
-// WebGL context loss handler — recover instead of crashing
+// ── WebGL context loss/restore — full teardown and rebuild ──
+// After context loss ALL GPU resources (shaders, textures, buffers) are invalid.
+// Three.js r128 reinits its GL state internally, but JS-side model/env caches
+// still hold references to dead shader programs → shaderSource crash.
+// Fix: purge everything on loss, rebuild from scratch on restore.
+var contextLost = false;
+
 cv.addEventListener('webglcontextlost', function(e) {
   e.preventDefault();
-  console.warn('WebGL context lost — attempting recovery');
+  contextLost = true;
+  console.warn('WebGL context lost — purging all GPU caches');
+  // Purge cached models so we never reuse stale shader handles on restore
+  purgeModelCache();
 }, false);
 
 cv.addEventListener('webglcontextrestored', function() {
-  console.log('WebGL context restored — reloading scene');
-  // Recreate env if it existed
-  envReady = false;
-  if (scene3.environment) {
-    scene3.environment = null;
-  }
-  // Re-trigger env load
-  if (typeof reloadEnvironment === 'function') reloadEnvironment();
-  // Reload current model
-  reloadModel(false);
+  console.log('WebGL context restored — full scene rebuild');
+  contextLost = false;
+  // Rebuild environment map from scratch (new PMREMGenerator + HDR load)
+  reloadEnvironment();
+  // Reload current model fresh from server (not from cache)
+  reloadModel(true);
 }, false);
 
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = isIOS ? 1.0 : 1.3;
+renderer.toneMappingExposure = 1.3;
 renderer.setClearColor(0xe2e2e2, 1);
 renderer.physicallyCorrectLights = true;
 
 var scene3 = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
 
-// HDR Environment Map for PBR realism
-var pmremGenerator = new THREE.PMREMGenerator(renderer);
-pmremGenerator.compileEquirectangularShader();
+// PMREMGenerator is created fresh inside reloadEnvironment() on each call
 
 var envReady = false;
 var _envCallbacks = [];
@@ -1265,29 +1268,43 @@ var fillLight = new THREE.DirectionalLight(0xe8f0ff, 0.3);
 fillLight.position.set(-5, 3, -3);
 scene3.add(fillLight);
 
-// ═══ Load HDR Environment (after lights are defined) ═══
-if (isIOS) {
-  // iOS: use procedural studio env (saves ~40-60MB VRAM, prevents Context Lost)
-  console.log('iOS — using procedural studio environment');
-  activateFallbackLights();
-  envReady = true;
-  _envCallbacks.forEach(function(cb) { cb(); });
+// ═══ Load / Reload HDR Environment ═══
+// Wrapped in a reusable function so it can be called again after WebGL context restore.
+// Each call creates a fresh PMREMGenerator to avoid stale GPU references.
+function reloadEnvironment() {
+  envReady = false;
   _envCallbacks = [];
-} else {
-  // Desktop/Android: full HDR for best reflections
+
+  // Dispose old environment texture (its GPU backing is gone after context loss)
+  if (scene3.environment) {
+    scene3.environment.dispose();
+    scene3.environment = null;
+  }
+
+  // Reset light intensities to HDR-optimized defaults
+  // (activateFallbackLights will override these if HDR fails)
+  ambientLight.intensity = 0.15;
+  keyLight.intensity = 1.2;
+  fillLight.intensity = 0.3;
+
+  var pmrem = new THREE.PMREMGenerator(renderer);
+  pmrem.compileEquirectangularShader();
+
   new RGBELoader()
     .setDataType(THREE.UnsignedByteType)
     .load(
       'studio_small_08_1k.hdr',
       function(texture) {
+        if (contextLost) { texture.dispose(); pmrem.dispose(); return; }
         try {
-          var envMap = pmremGenerator.fromEquirectangular(texture).texture;
+          var envMap = pmrem.fromEquirectangular(texture).texture;
           scene3.environment = envMap;
           texture.dispose();
-          pmremGenerator.dispose();
+          pmrem.dispose();
           console.log('HDR environment loaded');
         } catch (e) {
           console.warn('PMREM generation failed, using fallback:', e);
+          pmrem.dispose();
           activateFallbackLights();
         }
         envReady = true;
@@ -1296,26 +1313,30 @@ if (isIOS) {
       },
       undefined,
       function(err) {
+        if (contextLost) { pmrem.dispose(); return; }
         console.warn('HDR load failed, using fallback lights:', err);
+        pmrem.dispose();
         activateFallbackLights();
-        pmremGenerator.dispose();
         envReady = true;
         _envCallbacks.forEach(function(cb) { cb(); });
         _envCallbacks = [];
       }
     );
+
+  // Timeout fallback
+  setTimeout(function() {
+    if (!envReady && !contextLost) {
+      console.warn('HDR load timeout, using fallback lights');
+      activateFallbackLights();
+      envReady = true;
+      _envCallbacks.forEach(function(cb) { cb(); });
+      _envCallbacks = [];
+    }
+  }, 3000);
 }
 
-// Timeout fallback — if EXR hasn't loaded in 5s, assume failure
-setTimeout(function() {
-  if (!envReady) {
-    console.warn('EXR load timeout, using fallback lights');
-    activateFallbackLights();
-    envReady = true;
-    _envCallbacks.forEach(function(cb) { cb(); });
-    _envCallbacks = [];
-  }
-}, 3000);
+// Initial environment load
+reloadEnvironment();
 
 
 
@@ -1377,6 +1398,21 @@ function evictOldestFromCache() {
 function trimCache() {
   while (modelCache.size > MODEL_CACHE_SIZE) {
     evictOldestFromCache();
+  }
+}
+
+// Purge ALL cached models — called on WebGL context loss.
+// After context loss, all GPU resources are invalid. Cached scenes still hold
+// JS references to old WebGLShader/WebGLProgram objects → crash on reuse.
+function purgeModelCache() {
+  console.log('Purging model cache (' + modelCache.size + ' entries)');
+  modelCache.forEach(function(entry) {
+    disposeModel(entry.scene);
+  });
+  modelCache.clear();
+  if (currentModel) {
+    scene3.remove(currentModel);
+    currentModel = null;
   }
 }
 
@@ -1586,6 +1622,7 @@ function scheduleRender() {
 
 (function frame() {
   requestAnimationFrame(frame);
+  if (contextLost) return; // Don't render with invalid GPU state
 
   // FPS measurement
   var now = performance.now();
@@ -1635,6 +1672,13 @@ function scheduleRender() {
     needsRender = false;
   }
 })();
+
+// Pause rendering when page goes to background — reduces context loss triggers on iOS
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'hidden') {
+    needsRender = false;
+  }
+});
 
 // State toggle: reload model on state change
 document.querySelectorAll('.state-btn').forEach(function(b) {
