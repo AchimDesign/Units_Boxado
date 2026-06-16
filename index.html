@@ -1132,14 +1132,14 @@ var lowMemoryMode = isIOS || isInIframe;
 
 var renderer = new THREE.WebGLRenderer({
   canvas: cv,
-  antialias: true,
+  antialias: !lowMemoryMode,
   alpha: false,
-  powerPreference: 'high-performance',
+  powerPreference: lowMemoryMode ? 'low-power' : 'high-performance',
   failIfMajorPerformanceCaveat: false
 });
 
 // Pixel ratio: iframe = 1, mobile = 1.5, desktop = 2
-var targetPixelRatio = isInIframe ? 1.25 : (isMobile ? 1.5 : 2);
+var targetPixelRatio = isInIframe ? 1.25 : (isIOS ? 1.0 : (isMobile ? 1.5 : 2));
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, targetPixelRatio));
 
 // ── WebGL context loss/restore — full teardown and rebuild ──
@@ -1402,13 +1402,13 @@ function trimCache() {
 }
 
 // Purge ALL cached models — called on WebGL context loss.
-// After context loss, all GPU resources are invalid. Cached scenes still hold
-// JS references to old WebGLShader/WebGLProgram objects → crash on reuse.
+// IMPORTANT: Do NOT call disposeModel() here! After context loss, all GPU
+// resources (shaders, textures, buffers) are already destroyed by the OS.
+// Calling .dispose() triggers Three.js internal cleanup that tries to delete
+// shaders on the dead context → shaderSource crash.
+// Just clear JS-side references. GC handles the rest.
 function purgeModelCache() {
   console.log('Purging model cache (' + modelCache.size + ' entries)');
-  modelCache.forEach(function(entry) {
-    disposeModel(entry.scene);
-  });
   modelCache.clear();
   if (currentModel) {
     scene3.remove(currentModel);
