@@ -3,9 +3,191 @@
 <html lang="pl">
 
 <head>
-  <!-- DEBUG: Eruda mobile devtools — REMOVE BEFORE PRODUCTION -->
+  <!-- DEBUG: Persistent crash logger — survives page crashes via localStorage -->
   <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-  <script>eruda.init();</script>
+  <script>
+  (function() {
+    var LOG_KEY = 'boxado_crash_log';
+    var SESSION_KEY = 'boxado_session_id';
+    var MAX_LOGS = 200;
+    var sessionId = Date.now().toString(36);
+    sessionStorage.setItem(SESSION_KEY, sessionId);
+
+    // Get existing logs (from before any crash)
+    var logs = [];
+    try { logs = JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); } catch(e) {}
+
+    function persist() {
+      try {
+        // Keep only last MAX_LOGS entries
+        if (logs.length > MAX_LOGS) logs = logs.slice(-MAX_LOGS);
+        localStorage.setItem(LOG_KEY, JSON.stringify(logs));
+      } catch(e) {}
+    }
+
+    function pushLog(level, args) {
+      var msg = Array.prototype.slice.call(args).map(function(a) {
+        if (a === null) return 'null';
+        if (a === undefined) return 'undefined';
+        if (typeof a === 'string') return a;
+        try { return JSON.stringify(a); } catch(e) { return String(a); }
+      }).join(' ');
+
+      var entry = {
+        t: Date.now(),
+        s: sessionId,
+        lvl: level,
+        msg: msg.substring(0, 500), // cap length
+      };
+
+      // Add memory info if available
+      if (performance.memory) {
+        entry.mem = Math.round(performance.memory.usedJSHeapSize / 1048576);
+      }
+
+      logs.push(entry);
+      persist();
+    }
+
+    // Wrap console methods
+    ['log', 'warn', 'error', 'info'].forEach(function(level) {
+      var orig = console[level];
+      console[level] = function() {
+        pushLog(level, arguments);
+        return orig.apply(console, arguments);
+      };
+    });
+
+    // Global error handler
+    window.addEventListener('error', function(e) {
+      pushLog('error', ['UNCAUGHT:', e.message, 'at', e.filename + ':' + e.lineno + ':' + e.colno]);
+    });
+
+    window.addEventListener('unhandledrejection', function(e) {
+      pushLog('error', ['UNHANDLED PROMISE:', (e.reason && e.reason.message) || e.reason]);
+    });
+
+    // Memory polling every second
+    if (performance.memory) {
+      setInterval(function() {
+        var mb = Math.round(performance.memory.usedJSHeapSize / 1048576);
+        var limit = Math.round(performance.memory.jsHeapSizeLimit / 1048576);
+        pushLog('mem', ['HEAP: ' + mb + 'MB / ' + limit + 'MB']);
+      }, 2000);
+    }
+
+    // Page visibility — note when page goes to background (might be killed there)
+    document.addEventListener('visibilitychange', function() {
+      pushLog('info', ['visibility:', document.visibilityState]);
+    });
+
+    pushLog('info', ['=== SESSION START', sessionId, '===', navigator.userAgent]);
+
+    // Init Eruda after a moment so it gets all the wrapped consoles
+    setTimeout(function() { try { eruda.init(); } catch(e){} }, 100);
+
+    // ─── Persistent visual overlay ───
+    document.addEventListener('DOMContentLoaded', function() {
+      var btn = document.createElement('button');
+      btn.textContent = '📋';
+      btn.style.cssText = 'position:fixed;top:10px;right:10px;z-index:99999;width:36px;height:36px;border:none;border-radius:50%;background:#000;color:#fff;font-size:18px;cursor:pointer;opacity:0.5;';
+      btn.onclick = function() { showCrashLog(); };
+      document.body.appendChild(btn);
+
+      // Auto-show if there's logs from a different (previous) session
+      var prevSessions = logs.filter(function(l) { return l.s !== sessionId; });
+      if (prevSessions.length > 0) {
+        btn.style.background = '#E73F19';
+        btn.style.opacity = '1';
+        btn.textContent = '⚠️';
+      }
+    });
+
+    function showCrashLog() {
+      var existing = document.getElementById('crash-log-panel');
+      if (existing) { existing.remove(); return; }
+
+      var panel = document.createElement('div');
+      panel.id = 'crash-log-panel';
+      panel.style.cssText = 'position:fixed;inset:0;background:#000;color:#0f0;z-index:99998;padding:40px 10px 10px;overflow:auto;font-family:monospace;font-size:11px;line-height:1.4;';
+
+      var header = document.createElement('div');
+      header.style.cssText = 'position:fixed;top:0;left:0;right:0;padding:6px 10px;background:#222;display:flex;gap:8px;align-items:center;';
+      header.innerHTML = '<span style="color:#fff;flex:1;font-size:11px;">Crash Log (' + logs.length + ' entries)</span>';
+
+      var clearBtn = document.createElement('button');
+      clearBtn.textContent = 'Clear';
+      clearBtn.style.cssText = 'padding:4px 10px;background:#E73F19;color:#fff;border:none;border-radius:4px;font-size:11px;';
+      clearBtn.onclick = function() {
+        logs = [];
+        localStorage.removeItem(LOG_KEY);
+        panel.remove();
+      };
+
+      var copyBtn = document.createElement('button');
+      copyBtn.textContent = 'Copy';
+      copyBtn.style.cssText = 'padding:4px 10px;background:#444;color:#fff;border:none;border-radius:4px;font-size:11px;';
+      copyBtn.onclick = function() {
+        var text = logs.map(function(l) {
+          var d = new Date(l.t);
+          var time = d.toISOString().substring(11, 23);
+          var mem = l.mem ? ' [' + l.mem + 'MB]' : '';
+          return time + mem + ' ' + l.lvl.toUpperCase() + ': ' + l.msg;
+        }).join('\\n');
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); } catch(e) {}
+        ta.remove();
+        copyBtn.textContent = 'Copied!';
+        setTimeout(function() { copyBtn.textContent = 'Copy'; }, 1500);
+      };
+
+      var closeBtn = document.createElement('button');
+      closeBtn.textContent = '✕';
+      closeBtn.style.cssText = 'padding:4px 10px;background:#444;color:#fff;border:none;border-radius:4px;font-size:11px;';
+      closeBtn.onclick = function() { panel.remove(); };
+
+      header.appendChild(copyBtn);
+      header.appendChild(clearBtn);
+      header.appendChild(closeBtn);
+      panel.appendChild(header);
+
+      // Render logs newest at bottom
+      logs.forEach(function(l) {
+        var line = document.createElement('div');
+        var d = new Date(l.t);
+        var time = d.toISOString().substring(11, 23);
+        var color = '#0f0';
+        if (l.lvl === 'error') color = '#ff5555';
+        else if (l.lvl === 'warn') color = '#ffaa00';
+        else if (l.lvl === 'info') color = '#88ccff';
+        else if (l.lvl === 'mem') color = '#cc88ff';
+        else if (l.s !== sessionId) color = '#888'; // older session = dimmed
+
+        var mem = l.mem ? ' <span style="color:#cc88ff">[' + l.mem + 'MB]</span>' : '';
+        line.innerHTML = '<span style="color:#666">' + time + '</span>' + mem + ' <span style="color:' + color + '">' + l.lvl.toUpperCase() + '</span>: ' + escapeHtml(l.msg);
+        line.style.cssText = 'padding:2px 0;border-bottom:1px solid #111;word-break:break-all;';
+        panel.appendChild(line);
+      });
+
+      document.body.appendChild(panel);
+      panel.scrollTop = panel.scrollHeight;
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, function(c) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c];
+      });
+    }
+
+    // Expose for manual use
+    window.__crashLog = { show: showCrashLog, logs: logs, clear: function(){ logs=[]; localStorage.removeItem(LOG_KEY); }};
+  })();
+  </script>
 
 <meta charset="UTF-8">
 
