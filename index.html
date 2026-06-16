@@ -223,6 +223,18 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
   .sidebar-card .cta-wrap{display:none !important;}
   .mobile-size-label{display:none !important;}
 
+  /* Mobile: Model unitu section */
+  .mobile-models{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
+  .mobile-models-title{font-size:12px;font-weight:600;line-height:1.5;color:var(--black);}
+  .mobile-models-list{display:flex;gap:10px;}
+  .mobile-model-tab{flex:0 0 auto;width:56px;height:40px;padding:0 8px;border:1px solid var(--g20);background:var(--white);border-radius:var(--r-s);font-family:inherit;font-size:12px;font-weight:600;color:var(--black);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s,border-color .15s;}
+  .mobile-model-tab.active{background:var(--brand-soft, #fcece8);color:var(--brand);border-color:transparent;}
+  .mobile-model-tab:active{transform:scale(0.97);}
+
+  /* Hide model-tag (badge) in viewer on mobile — now shown as section */
+  .mobile-viewer-top .model-tag{display:none !important;}
+  .mobile-viewer-top{justify-content:flex-end;}
+
   /* New mobile shell — full viewport, no scroll */
   html, body { overflow: hidden; }
   .shell{height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding:4px;gap:0;}
@@ -402,6 +414,10 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
           <button class="mobile-series-tab active" data-series="mono">Mono</button>
           <button class="mobile-series-tab" data-series="duo">Duo</button>
           <button class="mobile-series-tab" data-series="side">Side</button>
+        </div>
+        <div class="mobile-models">
+          <p class="mobile-models-title">Model unitu</p>
+          <div class="mobile-models-list" id="mobile-models-list"></div>
         </div>
       </div>
 
@@ -1120,7 +1136,7 @@ setTimeout(function() {
 
 
 // Camera orbit state
-var theta = 0.5, phi = 0.85, tTheta = 0.5, tPhi = 0.85;
+var theta = 0.6, phi = 1.25, tTheta = 0.6, tPhi = 1.25;
 var modelCenter = new THREE.Vector3(0, 0, 0);
 var minZoom = 1, maxZoom = 30;
 var radius = 8, tRadius = 8;
@@ -1256,7 +1272,7 @@ function applyModel(model, size, resetCamera, loaderEl) {
 
   var maxDim = Math.max(size.x, size.y, size.z);
   var fov = camera.fov * (Math.PI / 180);
-  var fit = (maxDim / 2) / Math.tan(fov / 2) * 1.6;
+  var fit = (maxDim / 2) / Math.tan(fov / 2) * 1.85;
   minZoom = fit * 0.35;
   maxZoom = fit * 1.6;
   if (resetCamera) {
@@ -1537,7 +1553,34 @@ function updateMobileUI() {
     t.classList.toggle('active', t.dataset.series === series);
   });
 
+  renderMobileModels();
   renderDrawer();
+}
+
+function renderMobileModels() {
+  var list = document.getElementById('mobile-models-list');
+  if (!list) return;
+  var html = '';
+  DATA[series].forEach(function(v) {
+    var active = v.id === variant.id ? ' active' : '';
+    html += '<button class="mobile-model-tab' + active + '" data-variant-id="' + v.id + '">' + v.id + '</button>';
+  });
+  list.innerHTML = html;
+
+  // Attach click handlers
+  list.querySelectorAll('.mobile-model-tab').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var targetId = btn.dataset.variantId;
+      if (targetId === variant.id) return;
+      var target = DATA[series].find(function(v) { return v.id === targetId; });
+      if (!target) return;
+      variant = target;
+      if (typeof renderList === 'function') renderList();
+      updateUI();
+      tRadius = getRadius();
+      reloadModel(true);
+    });
+  });
 }
 
 function drawerRow(icon, label, value) {
