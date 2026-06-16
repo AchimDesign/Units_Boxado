@@ -1341,19 +1341,23 @@ function applyModel(model, size, resetCamera, loaderEl) {
   currentModel = model;
   modelCenter.set(0, -0.12, 0);
 
-  // Rotate Side models 180° so doors face camera
-  model.rotation.y = (series === 'side') ? Math.PI : 0;
+  // Zresetuj rotację, nie obracamy modelu, tylko kamerę
+  model.rotation.y = 0;
 
   var maxDim = Math.max(size.x, size.y, size.z);
   var fov = camera.fov * (Math.PI / 180);
-  var fit = (maxDim / 2) / Math.tan(fov / 2) * 2.6;
+  // Zmniejszono mnożnik z 2.6 na 1.85 aby modele były bliżej i lepiej wypełniały ekran
+  var fit = (maxDim / 2) / Math.tan(fov / 2) * 1.85;
   minZoom = fit * 0.35;
   maxZoom = fit * 1.6;
   if (resetCamera) {
     tRadius = fit;
     radius = fit;
     // Reset angles to consistent starting position (3/4 eye-level view)
-    theta = 0.6;  tTheta = 0.6;
+    // Dla modeli 'side' obracamy kamerę o 180 stopni (Math.PI), żeby od razu widzieć drzwi
+    var baseTheta = 0.6;
+    var initialTheta = (series === 'side') ? baseTheta + Math.PI : baseTheta;
+    theta = initialTheta;  tTheta = initialTheta;
     phi = 1.25;   tPhi = 1.25;
   }
 
