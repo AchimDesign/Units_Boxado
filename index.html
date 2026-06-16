@@ -1346,7 +1346,7 @@ function applyModel(model, size, resetCamera, loaderEl) {
 
   var maxDim = Math.max(size.x, size.y, size.z);
   var fov = camera.fov * (Math.PI / 180);
-  var fit = (maxDim / 2) / Math.tan(fov / 2) * 2.2;
+  var fit = (maxDim / 2) / Math.tan(fov / 2) * 2.6;
   minZoom = fit * 0.35;
   maxZoom = fit * 1.6;
   if (resetCamera) {
@@ -2033,6 +2033,33 @@ if (!isMobile) {
 
   // Send immediately
   sendHeight();
+})();
+
+
+
+// ═══════════ Cheat: type "export" to save canvas as PNG ═══════════
+(function() {
+  var buffer = '';
+  var CHEAT = 'export';
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    buffer += e.key.toLowerCase();
+    if (buffer.length > CHEAT.length) buffer = buffer.slice(-CHEAT.length);
+    if (buffer === CHEAT) {
+      buffer = '';
+      // Force one clean render at full quality
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.render(scene3, camera);
+      // Export
+      var link = document.createElement('a');
+      var stateLabel = (state === 'open') ? 'opened' : 'closed'; link.download = variant.id + '_' + stateLabel + '.jpg';
+      link.href = cv.toDataURL('image/jpeg', 0.92);
+      link.click();
+      // Restore DPR
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, targetPixelRatio));
+      console.log('Exported: ' + link.download);
+    }
+  });
 })();
 
 </script>
