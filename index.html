@@ -1163,7 +1163,7 @@ cv.addEventListener('webglcontextrestored', function() {
 
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.3;
+renderer.toneMappingExposure = isIOS ? 1.0 : 1.3;
 renderer.setClearColor(0xe2e2e2, 1);
 renderer.physicallyCorrectLights = true;
 
@@ -1266,36 +1266,45 @@ fillLight.position.set(-5, 3, -3);
 scene3.add(fillLight);
 
 // ═══ Load HDR Environment (after lights are defined) ═══
-// Load HDR for everyone — procedural env is only fallback if HDR fails
-new RGBELoader()
-  .setDataType(THREE.UnsignedByteType)
-  .load(
-    'studio_small_08_1k.hdr',
-    function(texture) {
-      try {
-        var envMap = pmremGenerator.fromEquirectangular(texture).texture;
-        scene3.environment = envMap;
-        texture.dispose();
-        pmremGenerator.dispose();
-        console.log('HDR environment loaded');
-      } catch (e) {
-        console.warn('PMREM generation failed, using fallback:', e);
+if (isIOS) {
+  // iOS: use procedural studio env (saves ~40-60MB VRAM, prevents Context Lost)
+  console.log('iOS — using procedural studio environment');
+  activateFallbackLights();
+  envReady = true;
+  _envCallbacks.forEach(function(cb) { cb(); });
+  _envCallbacks = [];
+} else {
+  // Desktop/Android: full HDR for best reflections
+  new RGBELoader()
+    .setDataType(THREE.UnsignedByteType)
+    .load(
+      'studio_small_08_1k.hdr',
+      function(texture) {
+        try {
+          var envMap = pmremGenerator.fromEquirectangular(texture).texture;
+          scene3.environment = envMap;
+          texture.dispose();
+          pmremGenerator.dispose();
+          console.log('HDR environment loaded');
+        } catch (e) {
+          console.warn('PMREM generation failed, using fallback:', e);
+          activateFallbackLights();
+        }
+        envReady = true;
+        _envCallbacks.forEach(function(cb) { cb(); });
+        _envCallbacks = [];
+      },
+      undefined,
+      function(err) {
+        console.warn('HDR load failed, using fallback lights:', err);
         activateFallbackLights();
+        pmremGenerator.dispose();
+        envReady = true;
+        _envCallbacks.forEach(function(cb) { cb(); });
+        _envCallbacks = [];
       }
-      envReady = true;
-      _envCallbacks.forEach(function(cb) { cb(); });
-      _envCallbacks = [];
-    },
-    undefined,
-    function(err) {
-      console.warn('HDR load failed, using fallback lights:', err);
-      activateFallbackLights();
-      pmremGenerator.dispose();
-      envReady = true;
-      _envCallbacks.forEach(function(cb) { cb(); });
-      _envCallbacks = [];
-    }
-  );
+    );
+}
 
 // Timeout fallback — if EXR hasn't loaded in 5s, assume failure
 setTimeout(function() {
