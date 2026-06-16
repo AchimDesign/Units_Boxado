@@ -254,11 +254,11 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
   html, body { overflow: hidden; }
   .shell{height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding:4px;gap:0;}
   .sidebar{display:none;}
-  .viewer-area{display:flex;flex:1;min-height:0;}
+  .viewer-area{display:flex;flex-direction:column;flex:1;min-height:0;overflow-y:auto;}
 
   .viewer-card{
     background:var(--white);border:1px solid var(--g20);border-radius:var(--r-m);
-    flex:1;display:flex;flex-direction:column;padding:12px;gap:8px;min-height:0;
+    flex:none;height:auto;display:flex;flex-direction:column;padding:12px;gap:8px;
     border-left:1px solid var(--g20);border-right:1px solid var(--g20);border-top:1px solid var(--g20);
   }
 
@@ -273,8 +273,8 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
   /* Viewer inner — mobile */
   .viewer-inner{
     background:var(--g10);border-radius:var(--r-s);position:relative;overflow:hidden;
-    flex:1;display:flex;flex-direction:column;justify-content:space-between;
-    padding:12px;min-height:0;max-height:600px;align-items:stretch;
+    flex:none;height:360px;display:flex;flex-direction:column;justify-content:space-between;
+    padding:12px;align-items:stretch;
   }
   #cv{position:absolute;inset:0;width:100%;height:100%;display:block;}
 
