@@ -133,7 +133,7 @@
           var time = d.toISOString().substring(11, 23);
           var mem = l.mem ? ' [' + l.mem + 'MB]' : '';
           return time + mem + ' ' + l.lvl.toUpperCase() + ': ' + l.msg;
-        }).join('\\n');
+        }).join('\n');
         var ta = document.createElement('textarea');
         ta.value = text;
         ta.style.position = 'fixed';
@@ -1126,9 +1126,12 @@ var isInIframe = false;
 try { isInIframe = window.self !== window.top; } catch(e) { isInIframe = true; }
 var isMobile = /Mobi|Android/i.test(navigator.userAgent);
 var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            /iPad|iPhone|iPod/.test(navigator.platform) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+            (/Safari/.test(navigator.userAgent) && /Mobile/.test(navigator.userAgent) && !/Chrome|CriOS|FxiOS|OPiOS|mercury/.test(navigator.userAgent));
 // iOS Safari has very strict per-page memory limits — be aggressive
 var lowMemoryMode = isIOS || isInIframe;
+console.log('Platform — isIOS:', isIOS, 'isMobile:', isMobile, 'isInIframe:', isInIframe);
 
 var renderer = new THREE.WebGLRenderer({
   canvas: cv,
@@ -1168,7 +1171,7 @@ cv.addEventListener('webglcontextrestored', function() {
 
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.3;
+renderer.toneMappingExposure = isIOS ? 1.0 : 1.3;
 renderer.setClearColor(0xe2e2e2, 1);
 renderer.physicallyCorrectLights = true;
 
@@ -1290,38 +1293,48 @@ function reloadEnvironment() {
   var pmrem = new THREE.PMREMGenerator(renderer);
   pmrem.compileEquirectangularShader();
 
-  new RGBELoader()
-    .setDataType(THREE.UnsignedByteType)
-    .load(
-      'studio_small_08_1k.hdr',
-      function(texture) {
-        if (contextLost) { texture.dispose(); pmrem.dispose(); return; }
-        try {
-          var envMap = pmrem.fromEquirectangular(texture).texture;
-          scene3.environment = envMap;
-          texture.dispose();
-          pmrem.dispose();
-          console.log('HDR environment loaded');
-        } catch (e) {
-          console.warn('PMREM generation failed, using fallback:', e);
+  if (isIOS) {
+    // iOS: procedural studio env (saves ~40-60MB VRAM, prevents Context Lost crashes)
+    console.log('iOS — using procedural studio environment');
+    pmrem.dispose();
+    activateFallbackLights();
+    envReady = true;
+    _envCallbacks.forEach(function(cb) { cb(); });
+    _envCallbacks = [];
+  } else {
+    new RGBELoader()
+      .setDataType(THREE.UnsignedByteType)
+      .load(
+        'studio_small_08_1k.hdr',
+        function(texture) {
+          if (contextLost) { texture.dispose(); pmrem.dispose(); return; }
+          try {
+            var envMap = pmrem.fromEquirectangular(texture).texture;
+            scene3.environment = envMap;
+            texture.dispose();
+            pmrem.dispose();
+            console.log('HDR environment loaded');
+          } catch (e) {
+            console.warn('PMREM generation failed, using fallback:', e);
+            pmrem.dispose();
+            activateFallbackLights();
+          }
+          envReady = true;
+          _envCallbacks.forEach(function(cb) { cb(); });
+          _envCallbacks = [];
+        },
+        undefined,
+        function(err) {
+          if (contextLost) { pmrem.dispose(); return; }
+          console.warn('HDR load failed, using fallback lights:', err);
           pmrem.dispose();
           activateFallbackLights();
+          envReady = true;
+          _envCallbacks.forEach(function(cb) { cb(); });
+          _envCallbacks = [];
         }
-        envReady = true;
-        _envCallbacks.forEach(function(cb) { cb(); });
-        _envCallbacks = [];
-      },
-      undefined,
-      function(err) {
-        if (contextLost) { pmrem.dispose(); return; }
-        console.warn('HDR load failed, using fallback lights:', err);
-        pmrem.dispose();
-        activateFallbackLights();
-        envReady = true;
-        _envCallbacks.forEach(function(cb) { cb(); });
-        _envCallbacks = [];
-      }
-    );
+      );
+  }
 
   // Timeout fallback
   setTimeout(function() {
