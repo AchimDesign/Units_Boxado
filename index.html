@@ -1341,9 +1341,12 @@ function applyModel(model, size, resetCamera, loaderEl) {
   currentModel = model;
   modelCenter.set(0, -0.12, 0);
 
+  // Rotate Side models 180° so doors face camera
+  model.rotation.y = (series === 'side') ? Math.PI : 0;
+
   var maxDim = Math.max(size.x, size.y, size.z);
   var fov = camera.fov * (Math.PI / 180);
-  var fit = (maxDim / 2) / Math.tan(fov / 2) * 1.85;
+  var fit = (maxDim / 2) / Math.tan(fov / 2) * 2.2;
   minZoom = fit * 0.35;
   maxZoom = fit * 1.6;
   if (resetCamera) {
