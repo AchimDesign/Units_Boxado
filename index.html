@@ -246,14 +246,14 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
   .mobile-viewer-top{justify-content:flex-start;}
 
   /* New mobile shell — full viewport, no scroll */
-  html, body { overflow: hidden; }
-  .shell{height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding:4px;gap:0;}
+  html, body { overflow: auto; }
+  .shell{height:auto;max-height:600px;overflow:hidden;display:flex;flex-direction:column;padding:4px;gap:0;}
   .sidebar{display:none;}
-  .viewer-area{display:flex;flex:1;min-height:0;}
+  .viewer-area{display:flex;min-height:0;}
 
   .viewer-card{
     background:var(--white);border:1px solid var(--g20);border-radius:var(--r-m);
-    flex:1;display:flex;flex-direction:column;padding:12px;gap:16px;min-height:0;
+    flex:none;display:flex;flex-direction:column;padding:12px;gap:16px;min-height:0;
     border-left:1px solid var(--g20);border-right:1px solid var(--g20);border-top:1px solid var(--g20);
   }
 
@@ -268,7 +268,7 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
   /* Viewer inner — mobile */
   .viewer-inner{
     background:var(--g10);border-radius:var(--r-s);position:relative;overflow:hidden;
-    flex:1;display:flex;flex-direction:column;justify-content:space-between;
+    flex:0 0 360px;display:flex;flex-direction:column;justify-content:space-between;
     padding:12px;min-height:0;align-items:stretch;order:1;
   }
   #cv{position:absolute;inset:0;width:100%;height:100%;display:block;}
@@ -1011,7 +1011,7 @@ renderer.setClearColor(0xe2e2e2, 1);
 renderer.physicallyCorrectLights = true;
 
 var scene3 = new THREE.Scene();
-var camera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
+var camera = new THREE.PerspectiveCamera(40, 1, 0.01, 10000);
 
 // PMREMGenerator is created fresh inside reloadEnvironment() on each call
 
@@ -1346,6 +1346,10 @@ function applyModel(model, size, resetCamera, loaderEl) {
   var fit = (maxDim / 2) / Math.tan(fov / 2) * 2.6;
   minZoom = fit * 0.35;
   maxZoom = fit * 1.6;
+  // Dynamic clipping planes based on model scale
+  camera.near = fit * 0.001;
+  camera.far = fit * 20;
+  camera.updateProjectionMatrix();
   if (resetCamera) {
     tRadius = fit;
     radius = fit;
