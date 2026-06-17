@@ -235,16 +235,11 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
     overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;
   }
   .mobile-gallery img{
-    width:100%;height:100%;object-fit:cover;
+    max-width:100%;max-height:100%;object-fit:contain;
     transform-origin:center center;transition:transform 0.1s ease-out;
     pointer-events:none;
   }
   #cv{display:none !important;}
-
-  @media(min-width:769px){
-    .mobile-gallery{display:none !important;}
-    #cv{display:block !important;}
-  }
 
   /* Hide model-tag (badge) in viewer on mobile — now shown as section */
   .mobile-viewer-top .model-tag{display:none !important;}
@@ -254,11 +249,11 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
   html, body { overflow: hidden; }
   .shell{height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding:4px;gap:0;}
   .sidebar{display:none;}
-  .viewer-area{display:flex;flex-direction:column;flex:1;min-height:0;overflow-y:auto;}
+  .viewer-area{display:flex;flex:1;min-height:0;}
 
   .viewer-card{
     background:var(--white);border:1px solid var(--g20);border-radius:var(--r-m);
-    flex:none;height:auto;display:flex;flex-direction:column;padding:12px;gap:8px;
+    flex:1;display:flex;flex-direction:column;padding:12px;gap:8px;min-height:0;
     border-left:1px solid var(--g20);border-right:1px solid var(--g20);border-top:1px solid var(--g20);
   }
 
@@ -273,8 +268,8 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
   /* Viewer inner — mobile */
   .viewer-inner{
     background:var(--g10);border-radius:var(--r-s);position:relative;overflow:hidden;
-    flex:none;height:360px;display:flex;flex-direction:column;justify-content:space-between;
-    padding:12px;align-items:stretch;
+    flex:1;display:flex;flex-direction:column;justify-content:space-between;
+    padding:12px;min-height:0;align-items:stretch;
   }
   #cv{position:absolute;inset:0;width:100%;height:100%;display:block;}
 
@@ -321,13 +316,15 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
   .mobile-footer .cta:active{transform:scale(0.97);}
   .mobile-footer .cta-primary{background:var(--brand);color:var(--white);border-color:var(--brand);}
 
-  /* Loader override — clip to viewer-inner only, z-index:1 zeby nie przykrywac przyciskow z-index:2 */
-  .loader{position:absolute;inset:0;background:var(--g10);z-index:1;}
+  /* Loader override — clip to viewer-inner only */
+  .loader{position:absolute;inset:0;background:var(--g10);}
 }
 
 @media(min-width:769px){
   /* Mobile-only elements hidden on desktop */
   .mobile-header, .mobile-viewer-top, .mobile-viewer-bottom, .mobile-footer{display:none !important;}
+  .mobile-gallery{display:none !important;}
+  #cv{display:block !important;}
   .badge-m2{display:none !important;}
   .door-toggle{display:none !important;}
   .m-nav-arrow{display:none !important;}
@@ -335,10 +332,10 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 }
 
 /* ═══════════ Drawer (mobile only) ═══════════ */
-.backdrop{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:90;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:90;opacity:0;pointer-events:none;transition:opacity .3s ease;}
 .backdrop.open{opacity:1;pointer-events:auto;}
 
-.drawer{position:absolute;left:0;right:0;bottom:0;max-height:90%;background:var(--white);border-radius:16px 16px 0 0;box-shadow:0 -4px 16px rgba(0,0,0,.16);z-index:100;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;will-change:transform;}
+.drawer{position:fixed;left:0;right:0;bottom:0;max-height:85vh;max-height:85dvh;background:var(--white);border-radius:16px 16px 0 0;box-shadow:0 -4px 16px rgba(0,0,0,.16);z-index:100;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;will-change:transform;}
 .drawer.open{transform:translateY(0);}
 .drawer.dragging{transition:none;}
 
@@ -422,6 +419,20 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 
     <div class="viewer-card">
 
+      <!-- Mobile header (visible only on mobile) -->
+      <div class="mobile-header">
+        <p class="mobile-header-title">Wybierz typ unitu</p>
+        <div class="mobile-series-tabs" id="mobile-series-tabs">
+          <button class="mobile-series-tab active" data-series="mono">Mono</button>
+          <button class="mobile-series-tab" data-series="duo">Duo</button>
+          <button class="mobile-series-tab" data-series="side">Side</button>
+        </div>
+        <div class="mobile-models">
+          <p class="mobile-models-title">Model unitu</p>
+          <div class="mobile-models-list" id="mobile-models-list"></div>
+        </div>
+      </div>
+
       <div class="viewer-inner">
 
         <canvas id="cv"></canvas>
@@ -469,20 +480,6 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 
       </div>
 
-      <!-- Mobile header (visible only on mobile) moved below viewer -->
-      <div class="mobile-header">
-        <p class="mobile-header-title">Wybierz typ unitu</p>
-        <div class="mobile-series-tabs" id="mobile-series-tabs">
-          <button class="mobile-series-tab active" data-series="mono">Mono</button>
-          <button class="mobile-series-tab" data-series="duo">Duo</button>
-          <button class="mobile-series-tab" data-series="side">Side</button>
-        </div>
-        <div class="mobile-models">
-          <p class="mobile-models-title">Model unitu</p>
-          <div class="mobile-models-list" id="mobile-models-list"></div>
-        </div>
-      </div>
-
       <!-- Mobile footer CTAs (inside viewer-card, below viewer-inner) -->
       <div class="mobile-footer">
         <a href="https://biz.boxado.com" class="cta cta-primary">Zapytaj o wycenę</a>
@@ -507,15 +504,6 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 
         </button>
 
-      </div>
-
-      <!-- Mobile drawer (moved inside viewer-card) -->
-      <div class="backdrop" id="backdrop"></div>
-      <div class="drawer" id="drawer" aria-hidden="true">
-        <div class="drawer-handle-area" id="drawer-handle-area">
-          <div class="drawer-handle"></div>
-        </div>
-        <div class="drawer-content" id="drawer-content"></div>
       </div>
 
     </div>
@@ -1350,23 +1338,19 @@ function applyModel(model, size, resetCamera, loaderEl) {
   currentModel = model;
   modelCenter.set(0, -0.12, 0);
 
-  // Zresetuj rotację, nie obracamy modelu, tylko kamerę
-  model.rotation.y = 0;
+  // Rotate Side models 180° so doors face camera
+  model.rotation.y = (series === 'side') ? Math.PI : 0;
 
   var maxDim = Math.max(size.x, size.y, size.z);
   var fov = camera.fov * (Math.PI / 180);
-  // Zmniejszono mnożnik z 2.6 na 1.85 aby modele były bliżej i lepiej wypełniały ekran
-  var fit = (maxDim / 2) / Math.tan(fov / 2) * 1.85;
+  var fit = (maxDim / 2) / Math.tan(fov / 2) * 2.6;
   minZoom = fit * 0.35;
   maxZoom = fit * 1.6;
   if (resetCamera) {
     tRadius = fit;
     radius = fit;
     // Reset angles to consistent starting position (3/4 eye-level view)
-    // Dla modeli 'side' obracamy kamerę o 180 stopni (Math.PI), żeby od razu widzieć drzwi
-    var baseTheta = 0.6;
-    var initialTheta = (series === 'side') ? baseTheta + Math.PI : baseTheta;
-    theta = initialTheta;  tTheta = initialTheta;
+    theta = 0.6;  tTheta = 0.6;
     phi = 1.25;   tPhi = 1.25;
   }
 
@@ -1387,6 +1371,9 @@ function reloadModel(resetCamera) {
   if (isMobile) {
     // Mobile: swap gallery image instead of loading 3D model
     if (typeof updateGalleryImage === 'function') updateGalleryImage();
+    // Hide loader if visible
+    var loaderEl = document.getElementById('loader');
+    if (loaderEl) loaderEl.classList.add('hidden');
     return;
   }
   var stateKey = state === 'open' ? 'open' : 'closed';
@@ -1884,6 +1871,11 @@ updateMobileUI();
 
 
 // ═══════════ Mobile Gallery ═══════════
+// Hide 3D loader on mobile immediately
+if (isMobile) {
+  var loaderEl = document.getElementById('loader');
+  if (loaderEl) loaderEl.classList.add('hidden');
+}
 
 var galleryImg = document.getElementById('gallery-img');
 var galleryEl = document.getElementById('mobile-gallery');
@@ -1893,18 +1885,6 @@ function updateGalleryImage() {
   var map = IMAGE_MAP[variant.id];
   if (!map) return;
   var src = (state === 'open') ? map.open : map.closed;
-
-  var loaderEl = document.getElementById('loader');
-  if (loaderEl) {
-    var textEl = loaderEl.querySelector('.loader-text');
-    if (textEl) textEl.textContent = 'Ładuję obraz...';
-    loaderEl.classList.remove('hidden');
-  }
-
-  galleryImg.onload = function() {
-    if (loaderEl) loaderEl.classList.add('hidden');
-  };
-
   galleryImg.src = src;
   galleryImg.alt = 'Unit ' + variant.id;
   // Reset zoom on variant change
