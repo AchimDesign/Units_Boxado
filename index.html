@@ -965,7 +965,7 @@ var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
             (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
             (/Safari/.test(navigator.userAgent) && /Mobile/.test(navigator.userAgent) && !/Chrome|CriOS|FxiOS|OPiOS|mercury/.test(navigator.userAgent));
 // iOS Safari has very strict per-page memory limits — be aggressive
-var lowMemoryMode = isIOS || isInIframe;
+var lowMemoryMode = isIOS; // iframe no longer penalized — 3D only on desktop
 console.log('Platform — isIOS:', isIOS, 'isMobile:', isMobile, 'isInIframe:', isInIframe);
 
 var renderer = new THREE.WebGLRenderer({
@@ -977,7 +977,7 @@ var renderer = new THREE.WebGLRenderer({
 });
 
 // Pixel ratio: iframe = 1, mobile = 1.5, desktop = 2
-var targetPixelRatio = isInIframe ? 1.25 : (isIOS ? 1.0 : (isMobile ? 1.5 : Math.min(window.devicePixelRatio, 3)));
+var targetPixelRatio = isIOS ? 1.0 : (isMobile ? 1.5 : Math.min(window.devicePixelRatio, 3));
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, targetPixelRatio));
 
 // ── WebGL context loss/restore — full teardown and rebuild ──
