@@ -246,7 +246,7 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 
   /* New mobile shell — full viewport, no scroll */
   html, body { overflow: auto; }
-  .shell{height:auto;max-height:600px;overflow:visible;display:flex;flex-direction:column;padding:0;gap:0;}
+  .shell{height:auto;overflow:visible;display:flex;flex-direction:column;padding:0;gap:0;}
   .sidebar{display:none;}
   .viewer-area{display:flex;min-height:0;}
 
@@ -327,14 +327,15 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
   .badge-m2{display:none !important;}
   .door-toggle{display:none !important;}
   .m-nav-arrow{display:none !important;}
-  .drawer, .backdrop{display:none !important;}
+  .drawer{display:none !important;}
+  .backdrop{display:none !important;}
 }
 
 /* ═══════════ Drawer (mobile only) ═══════════ */
-.backdrop{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:90;opacity:0;pointer-events:none;transition:opacity .3s ease;border-radius:var(--r-m);overflow:hidden;}
+.backdrop{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:90;opacity:0;pointer-events:none;transition:opacity .3s ease;border-radius:inherit;}
 .backdrop.open{opacity:1;pointer-events:auto;}
 
-.drawer{position:absolute;left:0;right:0;bottom:0;max-height:85%;background:var(--white);border-radius:16px 16px 0 0;box-shadow:0 -4px 16px rgba(0,0,0,.16);z-index:100;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;will-change:transform;}
+.drawer{position:absolute;left:0;right:0;bottom:0;max-height:calc(100% - 24px);background:var(--white);border-radius:16px 16px 0 0;box-shadow:0 -4px 16px rgba(0,0,0,.16);z-index:100;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;will-change:transform;}
 .drawer.open{transform:translateY(0);}
 .drawer.dragging{transition:none;}
 
@@ -404,7 +405,7 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 
       <div class="cta-wrap cta-desktop">
 
-        <a href="https://biz.boxado.com" class="cta-primary">Zapytaj o wycenę</a>
+        <a href="https://biz.boxado.com" class="cta-primary" target="_top">Zapytaj o wycenę</a>
 
         <a href="#" id="pdf-btn-desktop" class="cta-secondary" target="_blank" rel="noopener">Pobierz specyfikację modelu 3M w PDF</a>
 
@@ -481,7 +482,7 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 
       <!-- Mobile footer CTAs (inside viewer-card, below viewer-inner) -->
       <div class="mobile-footer">
-        <a href="https://biz.boxado.com" class="cta cta-primary">Zapytaj o wycenę</a>
+        <a href="https://biz.boxado.com" class="cta cta-primary" target="_top">Zapytaj o wycenę</a>
         <button class="cta" id="open-drawer">Zobacz specyfikację</button>
       </div>
 
@@ -505,6 +506,15 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 
       </div>
 
+      <!-- Mobile drawer (inside viewer-card so it slides from card bottom) -->
+      <div class="backdrop" id="backdrop"></div>
+      <div class="drawer" id="drawer" aria-hidden="true">
+        <div class="drawer-handle-area" id="drawer-handle-area">
+          <div class="drawer-handle"></div>
+        </div>
+        <div class="drawer-content" id="drawer-content"></div>
+      </div>
+
     </div>
 
   </div>
@@ -513,7 +523,7 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 
 <div class="cta-sticky">
 
-  <a href="https://biz.boxado.com" class="cta-primary">Zapytaj o wycenę</a>
+  <a href="https://biz.boxado.com" class="cta-primary" target="_top">Zapytaj o wycenę</a>
 
   <a href="#" id="pdf-btn-sticky" class="cta-secondary" target="_blank" rel="noopener">Pobierz specyfikację modelu 3M w PDF</a>
 
@@ -1989,41 +1999,8 @@ if (!isMobile) {
 })();
 
 
-// Move drawer inside viewer-card on mobile so it slides from card bottom
-(function() {
-  function portalDrawer() {
-    if (window.innerWidth > 768) {
-      // On desktop: ensure drawer is back in body (in case of resize from mobile)
-      var d = document.getElementById('drawer');
-      var b = document.getElementById('backdrop');
-      if (d && d.parentNode !== document.body) document.body.appendChild(d);
-      if (b && b.parentNode !== document.body) document.body.appendChild(b);
-      return;
-    }
-    var viewerCard = document.querySelector('.viewer-card');
-    var drawer = document.getElementById('drawer');
-    var backdrop = document.getElementById('backdrop');
-    if (viewerCard && drawer && drawer.parentNode !== viewerCard) {
-      viewerCard.appendChild(backdrop);
-      viewerCard.appendChild(drawer);
-    }
-  }
-  // Run immediately (DOM is already loaded by the time this script runs)
-  portalDrawer();
-  window.addEventListener('resize', portalDrawer);
-})();
 
 </script>
-
-
-<!-- Mobile drawer -->
-<div class="backdrop" id="backdrop"></div>
-<div class="drawer" id="drawer" aria-hidden="true">
-  <div class="drawer-handle-area" id="drawer-handle-area">
-    <div class="drawer-handle"></div>
-  </div>
-  <div class="drawer-content" id="drawer-content"></div>
-</div>
 
 </body>
 
