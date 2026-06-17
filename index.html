@@ -245,7 +245,7 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
   .mobile-viewer-top{justify-content:flex-start;}
 
   /* New mobile shell — full viewport, no scroll */
-  html, body { overflow: auto; }
+  html, body { overflow: hidden; overscroll-behavior: none; }
   .shell{height:auto;overflow:visible;display:flex;flex-direction:column;padding:0;gap:0;}
   .sidebar{display:none;}
   .viewer-area{display:flex;min-height:0;}
@@ -1822,7 +1822,12 @@ function closeDrawer() {
 }
 
 var openDrawerBtn = document.getElementById('open-drawer');
-if (openDrawerBtn) openDrawerBtn.addEventListener('click', openDrawer);
+if (openDrawerBtn) {
+  openDrawerBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    openDrawer();
+  });
+}
 
 // Tap on model-tag (badge) opens drawer on mobile
 var modelTagEl = document.getElementById('model-tag');
@@ -1944,9 +1949,10 @@ if (!isMobile) {
 
   function sendHeight() {
     var h = document.documentElement.scrollHeight || document.body.scrollHeight;
-    // On mobile single-screen layout, use viewport height instead
+    // On mobile, use the actual shell height so iframe resizes perfectly to content
     if (window.innerWidth <= 768) {
-      h = window.innerHeight;
+      var shell = document.querySelector('.shell');
+      if (shell) h = shell.offsetHeight;
     }
     if (h !== lastHeight) {
       lastHeight = h;
