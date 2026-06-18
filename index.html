@@ -1198,7 +1198,7 @@ reloadEnvironment();
 
 
 // Camera orbit state
-var theta = 0.6, phi = 1.25, tTheta = 0.6, tPhi = 1.25;
+var theta = 0.6, phi = Math.PI * 0.49, tTheta = 0.6, tPhi = Math.PI * 0.49;
 var modelCenter = new THREE.Vector3(0, 0, 0);
 var minZoom = 1, maxZoom = 30;
 var radius = 8, tRadius = 8;
@@ -1365,7 +1365,7 @@ function applyModel(model, size, resetCamera, loaderEl) {
     // Reset angles — Side models: camera flipped to show doors
     var baseTheta = (series === 'side') ? 0.6 + Math.PI : 0.6;
     theta = baseTheta;  tTheta = baseTheta;
-    phi = 1.25;   tPhi = 1.25;
+    phi = Math.PI * 0.49;   tPhi = Math.PI * 0.49;
   }
 
   var ex = modelCenter.x + radius * Math.sin(phi) * Math.sin(theta);
