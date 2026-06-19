@@ -1984,6 +1984,7 @@ if (!isMobile) {
   var isoMode = false;
   var perspCam = camera;
   var orthoCam = null;
+  var savedMinZoom = minZoom, savedMaxZoom = maxZoom;
 
   function buildOrthoCam() {
     var w = cv.clientWidth || 1;
@@ -2022,9 +2023,16 @@ if (!isMobile) {
         tTheta = baseTheta;
         tPhi = Math.atan(Math.sqrt(2)); // 54.74° od góry = 35.26° nad horyzontem — kąt izometryczny
         camera = orthoCam;
+        // Rozszerz limity zoomu dla trybu izometrycznego
+        savedMinZoom = minZoom; savedMaxZoom = maxZoom;
+        minZoom *= 0.15;
+        maxZoom *= 3.5;
         console.log('%c📐 Tryb izometryczny ON', 'color:#E73F19;font-weight:bold');
       } else {
         camera = perspCam;
+        // Przywróć oryginalne limity zoomu
+        minZoom = savedMinZoom; maxZoom = savedMaxZoom;
+        tRadius = Math.max(minZoom, Math.min(maxZoom, tRadius));
         console.log('%c📐 Tryb izometryczny OFF', 'color:#747474');
       }
       needsRender = true;
