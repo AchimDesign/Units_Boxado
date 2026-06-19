@@ -666,31 +666,29 @@ var TAGS = {
 
 var PDF = {
 
-  '3M':  'https://drive.google.com/file/d/14k8Qc0HGEMItT3Ir5ubewPyyHkJVZrBp/view?usp=drive_link',
+  '3M':  'https://biz.boxado.com/wp-content/uploads/2026/06/3M.pdf',
 
+  '6D':  'https://biz.boxado.com/wp-content/uploads/2026/06/6D.pdf',
 
+  '6M':  'https://biz.boxado.com/wp-content/uploads/2026/06/6M.pdf',
 
-  '6D':  'https://drive.google.com/file/d/1z4FM3sa63Ojov2iCU1mDaefkAyf4gQVr/view?usp=drive_link',
+  '6S2': 'https://biz.boxado.com/wp-content/uploads/2026/06/6S2.pdf',
 
-  '6M':  'https://drive.google.com/file/d/1OBVubUwJ2guUyjmedcFGYqtx003Hn2e3/view?usp=drive_link',
+  '6S3': 'https://biz.boxado.com/wp-content/uploads/2026/06/6S3.pdf',
 
-  '6S2': 'https://drive.google.com/file/d/1KRk0IN8ERbiVOKU5scKvrJX_NFQY_8yq/view?usp=drive_link',
+  '9D':  'https://biz.boxado.com/wp-content/uploads/2026/06/9D.pdf',
 
-  '6S3': 'https://drive.google.com/file/d/1AjJYUIwVON11xAujHFzAP_vU7AMGhO1H/view?usp=drive_link',
+  '9M':  'https://biz.boxado.com/wp-content/uploads/2026/06/9M.pdf',
 
-  '9D':  'https://drive.google.com/file/d/1kW56mn3XYIaWYAT4DeBQXITiujHRt5_d/view?usp=drive_link',
+  '9S3': 'https://biz.boxado.com/wp-content/uploads/2026/06/9S3.pdf',
 
-  '9M':  'https://drive.google.com/file/d/16iR_VLj9x6VCIboXO8jnkuPXawIm29AX/view?usp=drive_link',
+  '12D': 'https://biz.boxado.com/wp-content/uploads/2026/06/12D.pdf',
 
-  '9S3': 'https://drive.google.com/file/d/1N_zbmxkwGM89u5hC5QhCfQ-ne6N6ku5F/view?usp=drive_link',
+  '12M': 'https://biz.boxado.com/wp-content/uploads/2026/06/12M.pdf',
 
-  '12D': 'https://drive.google.com/file/d/1LGnrsbeNgLlVr5hU8Iiv3RdS5abajW3G/view?usp=drive_link',
+  '12S4':'https://biz.boxado.com/wp-content/uploads/2026/06/12S4.pdf',
 
-  '12M': 'https://drive.google.com/file/d/1D6of9e4CHSl5ShvjvF5ZLMOiQ6Y5Gi94/view?usp=drive_link',
-
-  '12S4':'https://drive.google.com/file/d/1TM5p2gPicJ0gZdQ-lIbeZDlA15ocYPCI/view?usp=sharing',
-
-  '12S6':'https://drive.google.com/file/d/14DFcNdt5jv3Kty7o_TiapRbD21rUydKS/view?usp=drive_link',
+  '12S6':'https://biz.boxado.com/wp-content/uploads/2026/06/12S6.pdf',
 
 };
 
@@ -1978,6 +1976,60 @@ if (!isMobile) {
 })();
 
 
+
+// ═══════════ Cheat: type "isometric" to toggle isometric camera ═══════════
+(function() {
+  var buffer = '';
+  var CHEAT = 'isometric';
+  var isoMode = false;
+  var perspCam = camera;
+  var orthoCam = null;
+
+  function buildOrthoCam() {
+    var w = cv.clientWidth || 1;
+    var h = cv.clientHeight || 1;
+    var aspect = w / h;
+    var r = radius * 1.1;
+    var o = new THREE.OrthographicCamera(-r * aspect, r * aspect, r, -r, perspCam.near, perspCam.far);
+    o.fov = perspCam.fov; // needed so applyModel()'s fov calculation still works
+    return o;
+  }
+
+  window.addEventListener('resize', function() {
+    if (!isoMode || !orthoCam) return;
+    var w = cv.clientWidth || 1;
+    var h = cv.clientHeight || 1;
+    var aspect = w / h;
+    var r = radius * 1.1;
+    orthoCam.left   = -r * aspect;
+    orthoCam.right  =  r * aspect;
+    orthoCam.top    =  r;
+    orthoCam.bottom = -r;
+    orthoCam.updateProjectionMatrix();
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    buffer += e.key.toLowerCase();
+    if (buffer.length > CHEAT.length) buffer = buffer.slice(-CHEAT.length);
+    if (buffer === CHEAT) {
+      buffer = '';
+      isoMode = !isoMode;
+      if (isoMode) {
+        orthoCam = buildOrthoCam();
+        var baseTheta = (series === 'side') ? Math.PI / 4 + Math.PI : Math.PI / 4;
+        tTheta = baseTheta;
+        tPhi = Math.atan(Math.sqrt(2)); // 54.74° od góry = 35.26° nad horyzontem — kąt izometryczny
+        camera = orthoCam;
+        console.log('%c📐 Tryb izometryczny ON', 'color:#E73F19;font-weight:bold');
+      } else {
+        camera = perspCam;
+        console.log('%c📐 Tryb izometryczny OFF', 'color:#747474');
+      }
+      needsRender = true;
+    }
+  });
+})();
 
 // ═══════════ Cheat: type "export" to save canvas as PNG ═══════════
 (function() {
