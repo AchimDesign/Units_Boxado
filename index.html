@@ -1992,21 +1992,22 @@ if (!isMobile) {
     var r = radius * 1.1;
     var o = new THREE.OrthographicCamera(-r * aspect, r * aspect, r, -r, perspCam.near, perspCam.far);
     o.fov = perspCam.fov; // needed so applyModel()'s fov calculation still works
+    // Hook lookAt so frustum is synced with radius on every render frame
+    var origLookAt = o.lookAt.bind(o);
+    o.lookAt = function(target) {
+      origLookAt(target);
+      var w2 = cv.clientWidth || 1;
+      var h2 = cv.clientHeight || 1;
+      var aspect2 = w2 / h2;
+      var r2 = radius * 1.1;
+      o.left   = -r2 * aspect2;
+      o.right  =  r2 * aspect2;
+      o.top    =  r2;
+      o.bottom = -r2;
+      o.updateProjectionMatrix();
+    };
     return o;
   }
-
-  window.addEventListener('resize', function() {
-    if (!isoMode || !orthoCam) return;
-    var w = cv.clientWidth || 1;
-    var h = cv.clientHeight || 1;
-    var aspect = w / h;
-    var r = radius * 1.1;
-    orthoCam.left   = -r * aspect;
-    orthoCam.right  =  r * aspect;
-    orthoCam.top    =  r;
-    orthoCam.bottom = -r;
-    orthoCam.updateProjectionMatrix();
-  });
 
   document.addEventListener('keydown', function(e) {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
