@@ -1984,6 +1984,7 @@ if (!isMobile) {
   var isoMode = false;
   var perspCam = camera;
   var orthoCam = null;
+  var savedMinZoom = minZoom, savedMaxZoom = maxZoom;
 
   function buildOrthoCam() {
     var w = cv.clientWidth || 1;
@@ -1992,21 +1993,22 @@ if (!isMobile) {
     var r = radius * 1.1;
     var o = new THREE.OrthographicCamera(-r * aspect, r * aspect, r, -r, perspCam.near, perspCam.far);
     o.fov = perspCam.fov; // needed so applyModel()'s fov calculation still works
+    // Hook lookAt so frustum is synced with radius on every render frame
+    var origLookAt = o.lookAt.bind(o);
+    o.lookAt = function(target) {
+      origLookAt(target);
+      var w2 = cv.clientWidth || 1;
+      var h2 = cv.clientHeight || 1;
+      var aspect2 = w2 / h2;
+      var r2 = radius * 1.1;
+      o.left   = -r2 * aspect2;
+      o.right  =  r2 * aspect2;
+      o.top    =  r2;
+      o.bottom = -r2;
+      o.updateProjectionMatrix();
+    };
     return o;
   }
-
-  window.addEventListener('resize', function() {
-    if (!isoMode || !orthoCam) return;
-    var w = cv.clientWidth || 1;
-    var h = cv.clientHeight || 1;
-    var aspect = w / h;
-    var r = radius * 1.1;
-    orthoCam.left   = -r * aspect;
-    orthoCam.right  =  r * aspect;
-    orthoCam.top    =  r;
-    orthoCam.bottom = -r;
-    orthoCam.updateProjectionMatrix();
-  });
 
   document.addEventListener('keydown', function(e) {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -2021,9 +2023,16 @@ if (!isMobile) {
         tTheta = baseTheta;
         tPhi = Math.atan(Math.sqrt(2)); // 54.74° od góry = 35.26° nad horyzontem — kąt izometryczny
         camera = orthoCam;
+        // Rozszerz limity zoomu dla trybu izometrycznego
+        savedMinZoom = minZoom; savedMaxZoom = maxZoom;
+        minZoom *= 0.15;
+        maxZoom *= 3.5;
         console.log('%c📐 Tryb izometryczny ON', 'color:#E73F19;font-weight:bold');
       } else {
         camera = perspCam;
+        // Przywróć oryginalne limity zoomu
+        minZoom = savedMinZoom; maxZoom = savedMaxZoom;
+        tRadius = Math.max(minZoom, Math.min(maxZoom, tRadius));
         console.log('%c📐 Tryb izometryczny OFF', 'color:#747474');
       }
       needsRender = true;
