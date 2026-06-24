@@ -245,8 +245,8 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
   .mobile-viewer-top .model-tag{display:none !important;}
   .mobile-viewer-top{justify-content:flex-start;}
 
-  /* New mobile shell — full viewport, no scroll */
-  html, body { overflow: hidden; overscroll-behavior: none; }
+  /* New mobile shell — allow document scroll when content exceeds viewport (Android fix) */
+  html, body { overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
   .shell{height:auto;overflow:visible;display:flex;flex-direction:column;padding:0;gap:0;}
   .sidebar{display:none;}
   .viewer-area{display:flex;min-height:0;}
@@ -1948,10 +1948,12 @@ if (!isMobile) {
 
   function sendHeight() {
     var h = document.documentElement.scrollHeight || document.body.scrollHeight;
-    // On mobile, use the actual shell height so iframe resizes perfectly to content
+    // On mobile, prefer the shell's content height so the parent iframe can size
+    // to fit (avoids internal-scroll lock on Android). Use the larger of shell
+    // height and document scrollHeight as a safety net.
     if (window.innerWidth <= 768) {
       var shell = document.querySelector('.shell');
-      if (shell) h = shell.offsetHeight;
+      if (shell) h = Math.max(shell.offsetHeight, h);
     }
     if (h !== lastHeight) {
       lastHeight = h;
@@ -1971,6 +1973,16 @@ if (!isMobile) {
 
   // Periodic check (catches dynamic content changes like drawer open/close)
   setInterval(sendHeight, 500);
+
+  // Re-fire once the gallery image and fonts have settled (they affect height)
+  var gImg = document.getElementById('gallery-img');
+  if (gImg) {
+    gImg.addEventListener('load', sendHeight);
+    if (gImg.complete) sendHeight();
+  }
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(sendHeight);
+  }
 
   // Send immediately
   sendHeight();
