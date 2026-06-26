@@ -2063,7 +2063,7 @@ if (!isMobile) {
         camera = orthoCam;
         // Rozszerz limity zoomu dla trybu izometrycznego
         savedMinZoom = minZoom; savedMaxZoom = maxZoom;
-        minZoom *= 0.15;
+        minZoom *= 0.08; // niższa wartość = można przybliżyć modele bliżej w trybie izometrycznym
         maxZoom *= (variant.length >= 6000 ? 5.5 : 3.5);
         console.log('%c📐 Tryb izometryczny ON', 'color:#E73F19;font-weight:bold');
       } else {
