@@ -246,7 +246,10 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
   .mobile-viewer-top{justify-content:flex-start;}
 
   /* New mobile shell — allow document scroll when content exceeds viewport (Android fix) */
-  html, body { overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  /* overscroll-behavior:auto lets a swipe over the iframe chain to the parent page
+     on Android (contain blocked it, so the page only scrolled when touching the
+     parent menu; iOS flattens iframes so it was unaffected). */
+  html, body { overflow-x: hidden; overflow-y: auto; overscroll-behavior: auto; -webkit-overflow-scrolling: touch; }
   .shell{height:auto;overflow:visible;display:flex;flex-direction:column;padding:0;gap:0;}
   .sidebar{display:none;}
   .viewer-area{display:flex;min-height:0;}
@@ -358,6 +361,9 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 
 .drawer .info-btn{background:none;border:none;padding:0;cursor:pointer;display:inline-flex;color:var(--g70, #747474);}
 .drawer .info-btn svg{width:14px;height:14px;color:var(--g70, #747474);}
+/* Tap-to-show tooltip on touch (no :hover on mobile). .show is toggled in JS. */
+.tooltip.show{visibility:visible;opacity:1;}
+.drawer .tooltip{white-space:normal;width:180px;}
 </style>
 
   <script async src="https://ga.jspm.io/npm:es-module-shims@1.8.0/dist/es-module-shims.js"></script>
@@ -406,7 +412,7 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 
       <div class="cta-wrap cta-desktop">
 
-        <a href="https://biz.boxado.com" class="cta-primary" target="_top">Zapytaj o wycenę</a>
+        <a href="https://biz.boxado.com/#kontakt" class="cta-primary" target="_top">Zapytaj o wycenę</a>
 
         <a href="#" id="pdf-btn-desktop" class="cta-secondary" target="_blank" rel="noopener">Pobierz specyfikację modelu 3M w PDF</a>
 
@@ -483,7 +489,7 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 
       <!-- Mobile footer CTAs (inside viewer-card, below viewer-inner) -->
       <div class="mobile-footer">
-        <a href="https://biz.boxado.com" class="cta cta-primary" target="_top">Zapytaj o wycenę</a>
+        <a href="https://biz.boxado.com/#kontakt" class="cta cta-primary" target="_top">Zapytaj o wycenę</a>
         <button class="cta" id="open-drawer">Zobacz specyfikację</button>
       </div>
 
@@ -524,7 +530,7 @@ body{font-family:var(--font);background:var(--g05);color:var(--g100);font-size:1
 
 <div class="cta-sticky">
 
-  <a href="https://biz.boxado.com" class="cta-primary" target="_top">Zapytaj o wycenę</a>
+  <a href="https://biz.boxado.com/#kontakt" class="cta-primary" target="_top">Zapytaj o wycenę</a>
 
   <a href="#" id="pdf-btn-sticky" class="cta-secondary" target="_blank" rel="noopener">Pobierz specyfikację modelu 3M w PDF</a>
 
@@ -739,7 +745,7 @@ var DATA={
 
     {id:'6D', m2:6,  length:3140,width:2290,height:2246,doorW:2120,doorH:2015,chambers:2,boxDepth:2150,boxWidth:1445,popular:false},
 
-    {id:'9D', m2:9,  length:4605,width:2290,height:2246,doorW:2120,doorH:2015,chambers:2,boxDepth:2150,boxWidth:1440,popular:false},
+    {id:'9D', m2:9,  length:4605,width:2290,height:2246,doorW:2120,doorH:2015,chambers:2,boxDepth:2150,boxWidth:'1440/2900',popular:false},
 
     {id:'12D',m2:12, length:6070,width:2290,height:2246,doorW:2120,doorH:2015,chambers:2,boxDepth:2150,boxWidth:2920,popular:false},
 
@@ -1730,7 +1736,7 @@ function renderDrawer() {
   html += '</div></div>';
 
   html += '<div class="drawer-section"><div class="drawer-section-title">Boxy</div><div class="drawer-rows">';
-  html += '<div class="drawer-row"><div class="drawer-label">' + IC_DRAWER.box + 'Ilość boxów <button class="info-btn">' + IC_DRAWER.info + '</button></div><div class="drawer-value">' + v.chambers + '</div></div>';
+  html += '<div class="drawer-row"><div class="drawer-label">' + IC_DRAWER.box + 'Ilość boxów <button class="info-btn" type="button">' + IC_DRAWER.info + '<span class="tooltip">Ilość komór w ramach jednego unitu</span></button></div><div class="drawer-value">' + v.chambers + '</div></div>';
   html += drawerRow(IC_DRAWER.moveD, 'Głębokość boxa', v.boxDepth + ' mm');
   html += drawerRow(IC_DRAWER.moveH, 'Szerokość boxa', v.boxWidth + ' mm');
   html += '</div></div>';
@@ -1818,7 +1824,24 @@ function closeDrawer() {
   drawerEl.classList.remove('open');
   backdropEl.classList.remove('open');
   drawerEl.setAttribute('aria-hidden', 'true');
+  // hide any open tooltip so it doesn't reappear on next open
+  drawerEl.querySelectorAll('.tooltip.show').forEach(function(t){ t.classList.remove('show'); });
 }
+
+// Tap-to-toggle tooltips inside the mobile drawer (touch has no :hover).
+document.addEventListener('click', function(e) {
+  var btn = e.target.closest('.drawer .info-btn');
+  // close any other open tooltip
+  document.querySelectorAll('.drawer .tooltip.show').forEach(function(t) {
+    if (!btn || t !== btn.querySelector('.tooltip')) t.classList.remove('show');
+  });
+  if (btn) {
+    e.preventDefault();
+    e.stopPropagation();
+    var tip = btn.querySelector('.tooltip');
+    if (tip) tip.classList.toggle('show');
+  }
+});
 
 var openDrawerBtn = document.getElementById('open-drawer');
 if (openDrawerBtn) {
@@ -1948,12 +1971,14 @@ if (!isMobile) {
 
   function sendHeight() {
     var h = document.documentElement.scrollHeight || document.body.scrollHeight;
-    // On mobile, prefer the shell's content height so the parent iframe can size
-    // to fit (avoids internal-scroll lock on Android). Use the larger of shell
-    // height and document scrollHeight as a safety net.
+    // On mobile, use the shell's real content height. We must NOT use the
+    // document scrollHeight here: once the parent sizes the iframe, that
+    // scrollHeight is clamped to the iframe's own height and can never shrink
+    // below it (a feedback loop that leaves an empty grey strip under the
+    // viewer). shell.offsetHeight reflects the true content height instead.
     if (window.innerWidth <= 768) {
       var shell = document.querySelector('.shell');
-      if (shell) h = Math.max(shell.offsetHeight, h);
+      if (shell && shell.offsetHeight) h = shell.offsetHeight;
     }
     if (h !== lastHeight) {
       lastHeight = h;

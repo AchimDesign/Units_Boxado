@@ -1,0 +1,13 @@
+# Lokalne pomocniki / narzędzia deweloperskie
+start_localhost.command
+
+# macOS
+.DS_Store
+
+# Edytory / IDE
+.vscode/
+.idea/
+
+# Logi i pliki tymczasowe
+*.log
+*.tmp
